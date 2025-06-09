@@ -214,7 +214,7 @@ export default function Home() {
         </motion.div>
 
         {/* Main Content Area */}
-        <motion.div variants={itemVariants} className="max-w-6xl mx-auto">
+        <motion.div variants={itemVariants} className="max-w-7xl mx-auto">
           <AnimatePresence mode="wait">
             {result ? (
               <motion.div
