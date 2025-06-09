@@ -1,11 +1,22 @@
 'use client';
 
 import { useState } from 'react';
-import { SchemaDesigner } from '@/components/schema-designer';
-import { EndpointResult } from '@/components/endpoint-result';
+import { motion, AnimatePresence } from "framer-motion";
+import { SchemaDesigner } from "@/components/schema-designer";
+import { EndpointResult } from "@/components/endpoint-result";
 import { OnboardingTour, useOnboarding } from "@/components/onboarding-tour";
 import { Button } from "@/components/ui/button";
-import { MockSchema, CreateMockResponse } from '@/types';
+import { MockSchema, CreateMockResponse } from "@/types";
+import {
+  Zap,
+  Clock,
+  Shield,
+  Sparkles,
+  ArrowRight,
+  Code2,
+  Database,
+  Globe,
+} from "lucide-react";
 
 export default function Home() {
   const [result, setResult] = useState<CreateMockResponse | null>(null);
@@ -21,23 +32,23 @@ export default function Home() {
   const handleGenerate = async (schema: MockSchema) => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/create-mock', {
-        method: 'POST',
+      const response = await fetch("/api/create-mock", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(schema),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create mock endpoint');
+        throw new Error("Failed to create mock endpoint");
       }
 
       const data: CreateMockResponse = await response.json();
       setResult(data);
     } catch (error) {
-      console.error('Error creating mock endpoint:', error);
-      alert('Failed to create mock endpoint. Please try again.');
+      console.error("Error creating mock endpoint:", error);
+      alert("Failed to create mock endpoint. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -47,74 +58,283 @@ export default function Home() {
     setResult(null);
   };
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.6,
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5 },
+    },
+  };
+
+  const featureVariants = {
+    hidden: { opacity: 0, scale: 0.8 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.5 },
+    },
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
-      {/* Onboarding Tour */}
-      {showOnboarding && (
-        <OnboardingTour
-          onCompleteAction={completeOnboarding}
-          onSkipAction={skipOnboarding}
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <motion.div
+          animate={{
+            rotate: 360,
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          className="absolute -top-1/2 -right-1/2 w-96 h-96 bg-gradient-to-br from-blue-200/20 to-indigo-300/20 dark:from-blue-800/10 dark:to-indigo-900/10 rounded-full blur-3xl"
         />
-      )}
+        <motion.div
+          animate={{
+            rotate: -360,
+          }}
+          transition={{
+            duration: 25,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+          className="absolute -bottom-1/2 -left-1/2 w-96 h-96 bg-gradient-to-tr from-purple-200/20 to-pink-300/20 dark:from-purple-800/10 dark:to-pink-900/10 rounded-full blur-3xl"
+        />
+      </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+      {/* Onboarding Tour */}
+      <AnimatePresence>
+        {showOnboarding && (
+          <OnboardingTour
+            onCompleteAction={completeOnboarding}
+            onSkipAction={skipOnboarding}
+          />
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="relative z-10 container mx-auto px-4 py-8"
+      >
+        {/* Hero Section */}
+        <motion.div
+          variants={itemVariants}
+          className="text-center mb-16 space-y-6"
+        >
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-blue-200/50 dark:border-slate-700/50 shadow-lg"
+          >
+            <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Instant Mock API Generator
+            </span>
+          </motion.div>
+
+          {/* Main Title */}
+          <motion.h1
+            variants={itemVariants}
+            className="text-6xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 dark:from-white dark:via-blue-200 dark:to-indigo-200 leading-tight"
+          >
             Mocklyst
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Create instant, temporary mock API endpoints in seconds. No login
-            required, auto-expires in 7 days.
-          </p>
+          </motion.h1>
 
+          {/* Subtitle */}
+          <motion.p
+            variants={itemVariants}
+            className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed"
+          >
+            Create instant, temporary mock API endpoints in seconds.
+            <span className="block mt-2 text-lg text-gray-500 dark:text-gray-400">
+              No login required • Auto-expires in 7 days • Zero configuration
+            </span>
+          </motion.p>
+
+          {/* Feature Pills */}
+          <motion.div
+            variants={itemVariants}
+            className="flex flex-wrap items-center justify-center gap-4 mt-8"
+          >
+            {[
+              { icon: Zap, text: "Instant Setup", color: "yellow" },
+              { icon: Shield, text: "Secure & Private", color: "green" },
+              { icon: Clock, text: "Auto-Cleanup", color: "blue" },
+            ].map((feature) => (
+              <motion.div
+                key={feature.text}
+                variants={featureVariants}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-${feature.color}-200/50 dark:border-slate-700/50 shadow-md hover:shadow-lg transition-all duration-300`}
+              >
+                <feature.icon
+                  className={`h-4 w-4 text-${feature.color}-600 dark:text-${feature.color}-400`}
+                />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {feature.text}
+                </span>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Tutorial Button */}
           {hasSeenOnboarding && (
-            <div className="mt-4">
+            <motion.div variants={itemVariants} className="mt-6">
               <Button
                 onClick={resetOnboarding}
                 variant="outline"
                 size="sm"
-                className="text-sm"
+                className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-blue-200/50 dark:border-slate-700/50 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all duration-300"
               >
-                🎯 Show Tutorial Again
+                <span className="mr-2">🎯</span>
+                Show Tutorial Again
+                <ArrowRight className="h-3 w-3 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
               </Button>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
-        {/* Main Content */}
-        <div className="max-w-6xl mx-auto">
-          {result ? (
-            <EndpointResult
-              endpoint={result.endpoint}
-              id={result.id}
-              expiresAt={result.expiresAt}
-              onResetAction={handleReset}
-            />
-          ) : (
-            <SchemaDesigner onGenerate={handleGenerate} isLoading={isLoading} />
-          )}
-        </div>
+        {/* Main Content Area */}
+        <motion.div variants={itemVariants} className="max-w-6xl mx-auto">
+          <AnimatePresence mode="wait">
+            {result ? (
+              <motion.div
+                key="result"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+                className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-white/20 dark:border-slate-700/50 shadow-2xl p-8"
+              >
+                <EndpointResult
+                  endpoint={result.endpoint}
+                  id={result.id}
+                  expiresAt={result.expiresAt}
+                  onResetAction={handleReset}
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="designer"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+                className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-white/20 dark:border-slate-700/50 shadow-2xl p-8"
+              >
+                <SchemaDesigner
+                  onGenerate={handleGenerate}
+                  isLoading={isLoading}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* Features Grid */}
+        {!result && (
+          <motion.div
+            variants={itemVariants}
+            className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+          >
+            {[
+              {
+                icon: Code2,
+                title: "Developer Friendly",
+                description:
+                  "RESTful endpoints with proper JSON responses and CORS support",
+                color: "blue",
+              },
+              {
+                icon: Database,
+                title: "Rich Data Types",
+                description:
+                  "Support for objects, arrays, primitives, and nested structures",
+                color: "purple",
+              },
+              {
+                icon: Globe,
+                title: "Instant Access",
+                description:
+                  "Use your endpoints immediately from any application or service",
+                color: "green",
+              },
+            ].map((feature) => (
+              <motion.div
+                key={feature.title}
+                variants={featureVariants}
+                whileHover={{
+                  scale: 1.02,
+                  translateY: -5,
+                }}
+                className="group p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/30 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300"
+              >
+                <div
+                  className={`w-12 h-12 rounded-xl bg-${feature.color}-100 dark:bg-${feature.color}-900/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
+                >
+                  <feature.icon
+                    className={`h-6 w-6 text-${feature.color}-600 dark:text-${feature.color}-400`}
+                  />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                  {feature.description}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
+        )}
 
         {/* Footer */}
-        <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400 space-y-2">
-          <p className="font-medium text-gray-700 dark:text-gray-300">
+        <motion.footer
+          variants={itemVariants}
+          className="mt-20 text-center space-y-3"
+        >
+          <motion.p
+            className="font-medium text-gray-700 dark:text-gray-300"
+            whileHover={{ scale: 1.02 }}
+          >
             Developed by{" "}
-            <span className="text-blue-600 dark:text-blue-400 font-semibold">
+            <span className="text-blue-600 dark:text-blue-400 font-semibold bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">
               Eng. Mohamed Wael Bishr
             </span>
-          </p>
-          <p>
-            Built with Next.js, shadcn/ui, and TailwindCSS •
-            <a
+          </motion.p>
+          <motion.p
+            className="text-sm text-gray-500 dark:text-gray-400"
+            whileHover={{ scale: 1.02 }}
+          >
+            Built with Next.js, shadcn/ui, and TailwindCSS •{" "}
+            <motion.a
               href="/docs"
-              className="ml-1 hover:text-gray-700 dark:hover:text-gray-200 underline"
+              className="hover:text-gray-700 dark:hover:text-gray-200 underline underline-offset-4 decoration-blue-400 hover:decoration-blue-600 transition-colors duration-200"
+              whileHover={{ scale: 1.05 }}
             >
               Documentation
-            </a>
-          </p>
-        </footer>
-      </div>
+            </motion.a>
+          </motion.p>
+        </motion.footer>
+      </motion.div>
     </div>
   );
 }
