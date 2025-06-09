@@ -118,7 +118,8 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
     >
       {/* Schema Designer */}
       <motion.div variants={itemVariants} className="xl:col-span-2">
-        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border-white/30 dark:border-slate-700/30 shadow-xl hover:shadow-2xl transition-all duration-300">
+        {" "}
+        <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/20 dark:border-slate-700/50 shadow-2xl hover:shadow-3xl transition-all duration-300">
           <CardHeader className="pb-6">
             <CardTitle className="flex items-center gap-3 text-2xl">
               <motion.div
@@ -132,7 +133,7 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                 <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
                   Schema Designer
                 </span>
-                <CardDescription className="mt-1 text-base">
+                <CardDescription className="mt-1 text-base text-gray-600 dark:text-gray-300">
                   Design your mock API response structure with precision
                 </CardDescription>
               </div>
@@ -159,34 +160,35 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                     updateSchemaType(value)
                   }
                 >
-                  <SelectTrigger className="h-12 bg-white/80 dark:bg-slate-800/80 border-blue-200/50 dark:border-slate-600/50 hover:border-blue-300 dark:hover:border-slate-500 transition-all duration-200 text-base">
+                  {" "}
+                  <SelectTrigger className="h-12 bg-white/90 dark:bg-slate-800/90 border-blue-200/50 dark:border-slate-600/50 hover:border-blue-300 dark:hover:border-slate-500 transition-all duration-200 text-base">
                     <SelectValue placeholder="Choose response type" />
                   </SelectTrigger>
                   <SelectContent className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-blue-200/50 dark:border-slate-600/50">
                     <SelectItem
                       value="object"
-                      className="text-base hover:bg-blue-50 dark:hover:bg-slate-700"
+                      className="text-base hover:bg-blue-50 dark:hover:bg-slate-700/80"
                     >
                       <div className="flex items-center gap-2">
-                        <Code className="h-4 w-4 text-blue-600" />
+                        <Code className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         Object
                       </div>
                     </SelectItem>
                     <SelectItem
                       value="array"
-                      className="text-base hover:bg-blue-50 dark:hover:bg-slate-700"
+                      className="text-base hover:bg-blue-50 dark:hover:bg-slate-700/80"
                     >
                       <div className="flex items-center gap-2">
-                        <Layers className="h-4 w-4 text-green-600" />
+                        <Layers className="h-4 w-4 text-green-600 dark:text-green-400" />
                         Array
                       </div>
                     </SelectItem>
                     <SelectItem
                       value="primitive"
-                      className="text-base hover:bg-blue-50 dark:hover:bg-slate-700"
+                      className="text-base hover:bg-blue-50 dark:hover:bg-slate-700/80"
                     >
                       <div className="flex items-center gap-2">
-                        <Play className="h-4 w-4 text-purple-600" />
+                        <Play className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                         Primitive
                       </div>
                     </SelectItem>
@@ -194,7 +196,6 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                 </Select>
               </motion.div>
             </motion.div>
-
             {/* Array Length */}
             <AnimatePresence>
               {schema.type === "array" && (
@@ -216,6 +217,7 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                     whileHover={{ scale: 1.02 }}
                     transition={{ duration: 0.2 }}
                   >
+                    {" "}
                     <Input
                       type="number"
                       min="1"
@@ -227,14 +229,13 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                           length: parseInt(e.target.value) || 1,
                         }))
                       }
-                      className="h-12 bg-white/80 dark:bg-slate-800/80 border-green-200/50 dark:border-slate-600/50 hover:border-green-300 dark:hover:border-slate-500 focus:border-green-500 transition-all duration-200 text-base"
+                      className="h-12 bg-white/90 dark:bg-slate-800/90 border-green-200/50 dark:border-slate-600/50 hover:border-green-300 dark:hover:border-slate-500 focus:border-green-500 dark:focus:border-green-400 transition-all duration-200 text-base"
                       placeholder="Enter array length"
                     />
                   </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>
-
             {/* Primitive Type */}
             <AnimatePresence>
               {schema.type === "primitive" && (
@@ -268,17 +269,27 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                           }))
                         }
                       >
-                        <SelectTrigger className="h-12 bg-white/80 dark:bg-slate-800/80 border-purple-200/50 dark:border-slate-600/50 hover:border-purple-300 dark:hover:border-slate-500 transition-all duration-200 text-base">
+                        {" "}
+                        <SelectTrigger className="h-12 bg-white/90 dark:bg-slate-800/90 border-purple-200/50 dark:border-slate-600/50 hover:border-purple-300 dark:hover:border-slate-500 transition-all duration-200 text-base">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-purple-200/50 dark:border-slate-600/50">
-                          <SelectItem value="string" className="text-base">
+                          <SelectItem
+                            value="string"
+                            className="text-base hover:bg-purple-50 dark:hover:bg-slate-700/80"
+                          >
                             String
                           </SelectItem>
-                          <SelectItem value="number" className="text-base">
+                          <SelectItem
+                            value="number"
+                            className="text-base hover:bg-purple-50 dark:hover:bg-slate-700/80"
+                          >
                             Number
                           </SelectItem>
-                          <SelectItem value="boolean" className="text-base">
+                          <SelectItem
+                            value="boolean"
+                            className="text-base hover:bg-purple-50 dark:hover:bg-slate-700/80"
+                          >
                             Boolean
                           </SelectItem>
                         </SelectContent>
@@ -296,6 +307,7 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                         whileHover={{ scale: 1.02 }}
                         transition={{ duration: 0.2 }}
                       >
+                        {" "}
                         <Input
                           value={(schema.primitiveValue as string) || ""}
                           onChange={(e) =>
@@ -305,7 +317,7 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                             }))
                           }
                           placeholder="Enter string value"
-                          className="h-12 bg-white/80 dark:bg-slate-800/80 border-purple-200/50 dark:border-slate-600/50 hover:border-purple-300 dark:hover:border-slate-500 focus:border-purple-500 transition-all duration-200 text-base"
+                          className="h-12 bg-white/90 dark:bg-slate-800/90 border-purple-200/50 dark:border-slate-600/50 hover:border-purple-300 dark:hover:border-slate-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 text-base"
                         />
                       </motion.div>
                     )}
@@ -315,6 +327,7 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                         whileHover={{ scale: 1.02 }}
                         transition={{ duration: 0.2 }}
                       >
+                        {" "}
                         <Input
                           type="number"
                           value={(schema.primitiveValue as number) || 0}
@@ -325,7 +338,7 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                             }))
                           }
                           placeholder="Enter number value"
-                          className="h-12 bg-white/80 dark:bg-slate-800/80 border-purple-200/50 dark:border-slate-600/50 hover:border-purple-300 dark:hover:border-slate-500 focus:border-purple-500 transition-all duration-200 text-base"
+                          className="h-12 bg-white/90 dark:bg-slate-800/90 border-purple-200/50 dark:border-slate-600/50 hover:border-purple-300 dark:hover:border-slate-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 text-base"
                         />
                       </motion.div>
                     )}
@@ -344,12 +357,23 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                             }))
                           }
                         >
-                          <SelectTrigger className="h-12 bg-white/80 dark:bg-slate-800/80 border-purple-200/50 dark:border-slate-600/50 hover:border-purple-300 dark:hover:border-slate-500 transition-all duration-200 text-base">
+                          {" "}
+                          <SelectTrigger className="h-12 bg-white/90 dark:bg-slate-800/90 border-purple-200/50 dark:border-slate-600/50 hover:border-purple-300 dark:hover:border-slate-500 transition-all duration-200 text-base">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="true">true</SelectItem>
-                            <SelectItem value="false">false</SelectItem>
+                          <SelectContent className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-purple-200/50 dark:border-slate-600/50">
+                            <SelectItem
+                              value="true"
+                              className="hover:bg-purple-50 dark:hover:bg-slate-700/80"
+                            >
+                              true
+                            </SelectItem>
+                            <SelectItem
+                              value="false"
+                              className="hover:bg-purple-50 dark:hover:bg-slate-700/80"
+                            >
+                              false
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </motion.div>
@@ -358,7 +382,6 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                 </motion.div>
               )}
             </AnimatePresence>
-
             {/* Object/Array Fields */}
             <AnimatePresence>
               {(schema.type === "object" || schema.type === "array") && (
@@ -415,12 +438,10 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                   </div>
                 </motion.div>
               )}
-            </AnimatePresence>
-
+            </AnimatePresence>{" "}
             <motion.div variants={itemVariants}>
-              <Separator className="bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-600 to-transparent" />
+              <Separator className="bg-gradient-to-r from-transparent via-gray-300 dark:via-slate-600 to-transparent" />
             </motion.div>
-
             <motion.div
               variants={itemVariants}
               whileHover={{ scale: 1.02 }}
@@ -452,11 +473,10 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
             </motion.div>
           </CardContent>
         </Card>
-      </motion.div>
-
+      </motion.div>{" "}
       {/* JSON Preview */}
       <motion.div variants={itemVariants} className="xl:col-span-1">
-        <Card className="bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm border-white/30 dark:border-slate-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 h-fit sticky top-8">
+        <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/20 dark:border-slate-700/50 shadow-2xl hover:shadow-3xl transition-all duration-300 h-fit sticky top-8">
           <CardHeader className="pb-6">
             <CardTitle className="flex items-center gap-3 text-xl">
               <motion.div
@@ -470,7 +490,7 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                 <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
                   JSON Preview
                 </span>
-                <CardDescription className="mt-1">
+                <CardDescription className="mt-1 text-gray-600 dark:text-gray-300">
                   Live preview of your mock response
                 </CardDescription>
               </div>
@@ -502,15 +522,14 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                   {(schema.fields?.length || 0) !== 1 ? "s" : ""}
                 </Badge>
               )}
-            </motion.div>
-
+            </motion.div>{" "}
             <motion.div
               variants={itemVariants}
-              className="bg-gradient-to-br from-slate-50 to-gray-100 dark:from-slate-900 dark:to-slate-800 rounded-2xl p-6 overflow-auto border border-gray-200/50 dark:border-gray-700/50 shadow-inner max-h-96"
+              className="bg-gradient-to-br from-slate-50 to-gray-100 dark:from-slate-800/90 dark:to-slate-900/90 rounded-2xl p-6 overflow-auto border border-gray-200/50 dark:border-slate-600/50 shadow-inner max-h-96"
               whileHover={{ scale: 1.01 }}
               transition={{ duration: 0.2 }}
             >
-              <pre className="text-sm leading-relaxed text-gray-800 dark:text-gray-200 font-mono">
+              <pre className="text-sm leading-relaxed text-gray-800 dark:text-gray-100 font-mono">
                 {JSON.stringify(mockData, null, 2)}
               </pre>
             </motion.div>

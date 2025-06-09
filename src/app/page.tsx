@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SchemaDesigner } from "@/components/schema-designer";
 import { EndpointResult } from "@/components/endpoint-result";
 import { OnboardingTour, useOnboarding } from "@/components/onboarding-tour";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { MockSchema, CreateMockResponse } from "@/types";
 import {
@@ -90,6 +91,16 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
+      {/* Theme Toggle - Fixed Position */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.3 }}
+        className="fixed top-6 right-6 z-50"
+      >
+        <ThemeToggle />
+      </motion.div>
+
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
