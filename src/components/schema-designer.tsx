@@ -8,9 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, Eye, Zap } from 'lucide-react';
-import { MockSchema, SchemaField } from '@/types';
-import { generateMockData } from '@/lib/mock-generator';
+import { Plus, Eye, Zap } from "lucide-react";
+import { MockSchema, SchemaField } from "@/types";
+import { generateMockData } from "@/lib/mock-generator";
+import { NestedFieldBuilder } from "@/components/nested-field-builder";
 
 interface SchemaDesignerProps {
   onGenerate: (schema: MockSchema) => void;
@@ -19,45 +20,54 @@ interface SchemaDesignerProps {
 
 export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
   const [schema, setSchema] = useState<MockSchema>({
-    type: 'object',
-    fields: [{ key: 'id', type: 'number' }]
+    type: "object",
+    fields: [
+      { key: "id", type: "number" },
+      {
+        key: "myobject",
+        type: "object",
+        fields: [
+          { key: "id", type: "number" },
+          { key: "name", type: "string" },
+        ],
+      },
+    ],
   });
-
   const addField = () => {
-    if (schema.type === 'object' || schema.type === 'array') {
-      setSchema(prev => ({
+    if (schema.type === "object" || schema.type === "array") {
+      setSchema((prev) => ({
         ...prev,
-        fields: [...(prev.fields || []), { key: '', type: 'string' }]
+        fields: [...(prev.fields || []), { key: "", type: "string" }],
       }));
     }
   };
 
   const removeField = (index: number) => {
-    setSchema(prev => ({
+    setSchema((prev) => ({
       ...prev,
-      fields: prev.fields?.filter((_, i) => i !== index)
+      fields: prev.fields?.filter((_, i) => i !== index),
     }));
   };
 
   const updateField = (index: number, field: SchemaField) => {
-    setSchema(prev => ({
+    setSchema((prev) => ({
       ...prev,
-      fields: prev.fields?.map((f, i) => i === index ? field : f)
+      fields: prev.fields?.map((f, i) => (i === index ? field : f)),
     }));
   };
 
-  const updateSchemaType = (type: 'object' | 'array' | 'primitive') => {
-    if (type === 'primitive') {
+  const updateSchemaType = (type: "object" | "array" | "primitive") => {
+    if (type === "primitive") {
       setSchema({
         type,
-        primitiveType: 'string',
-        primitiveValue: 'sample text'
+        primitiveType: "string",
+        primitiveValue: "sample text",
       });
     } else {
       setSchema({
         type,
-        fields: [{ key: 'id', type: 'number' }],
-        ...(type === 'array' && { length: 3 })
+        fields: [{ key: "id", type: "number" }],
+        ...(type === "array" && { length: 3 }),
       });
     }
   };
@@ -67,7 +77,9 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Schema Designer */}
-      <Card>        <CardHeader>
+      <Card>
+        {" "}
+        <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5" />
             Schema Designer
@@ -80,9 +92,11 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
           {/* Response Type */}
           <div className="space-y-2">
             <Label htmlFor="type">Response Type</Label>
-            <Select 
-              value={schema.type} 
-              onValueChange={(value: 'object' | 'array' | 'primitive') => updateSchemaType(value)}
+            <Select
+              value={schema.type}
+              onValueChange={(value: "object" | "array" | "primitive") =>
+                updateSchemaType(value)
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -94,9 +108,8 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
               </SelectContent>
             </Select>
           </div>
-
           {/* Array Length */}
-          {schema.type === 'array' && (
+          {schema.type === "array" && (
             <div className="space-y-2">
               <Label htmlFor="length">Array Length</Label>
               <Input
@@ -105,23 +118,24 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                 min="1"
                 max="100"
                 value={schema.length || 1}
-                onChange={(e) => setSchema(prev => ({ 
-                  ...prev, 
-                  length: parseInt(e.target.value) || 1 
-                }))}
+                onChange={(e) =>
+                  setSchema((prev) => ({
+                    ...prev,
+                    length: parseInt(e.target.value) || 1,
+                  }))
+                }
               />
             </div>
           )}
-
           {/* Primitive Type */}
-          {schema.type === 'primitive' && (
+          {schema.type === "primitive" && (
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="primitiveType">Primitive Type</Label>
-                <Select 
-                  value={schema.primitiveType} 
-                  onValueChange={(value: 'string' | 'number' | 'boolean') => 
-                    setSchema(prev => ({ ...prev, primitiveType: value }))
+                <Select
+                  value={schema.primitiveType}
+                  onValueChange={(value: "string" | "number" | "boolean") =>
+                    setSchema((prev) => ({ ...prev, primitiveType: value }))
                   }
                 >
                   <SelectTrigger>
@@ -134,37 +148,44 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="primitiveValue">Value</Label>
-                {schema.primitiveType === 'string' && (
+                {schema.primitiveType === "string" && (
                   <Input
                     id="primitiveValue"
-                    value={schema.primitiveValue as string || ''}
-                    onChange={(e) => setSchema(prev => ({ 
-                      ...prev, 
-                      primitiveValue: e.target.value 
-                    }))}
+                    value={(schema.primitiveValue as string) || ""}
+                    onChange={(e) =>
+                      setSchema((prev) => ({
+                        ...prev,
+                        primitiveValue: e.target.value,
+                      }))
+                    }
                     placeholder="Enter string value"
                   />
                 )}
-                {schema.primitiveType === 'number' && (
+                {schema.primitiveType === "number" && (
                   <Input
                     id="primitiveValue"
                     type="number"
-                    value={schema.primitiveValue as number || 0}
-                    onChange={(e) => setSchema(prev => ({ 
-                      ...prev, 
-                      primitiveValue: parseFloat(e.target.value) || 0 
-                    }))}
+                    value={(schema.primitiveValue as number) || 0}
+                    onChange={(e) =>
+                      setSchema((prev) => ({
+                        ...prev,
+                        primitiveValue: parseFloat(e.target.value) || 0,
+                      }))
+                    }
                     placeholder="Enter number value"
                   />
                 )}
-                {schema.primitiveType === 'boolean' && (
-                  <Select 
-                    value={String(schema.primitiveValue)} 
-                    onValueChange={(value) => 
-                      setSchema(prev => ({ ...prev, primitiveValue: value === 'true' }))
+                {schema.primitiveType === "boolean" && (
+                  <Select
+                    value={String(schema.primitiveValue)}
+                    onValueChange={(value) =>
+                      setSchema((prev) => ({
+                        ...prev,
+                        primitiveValue: value === "true",
+                      }))
                     }
                   >
                     <SelectTrigger>
@@ -178,10 +199,9 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                 )}
               </div>
             </div>
-          )}
-
+          )}{" "}
           {/* Object/Array Fields */}
-          {(schema.type === 'object' || schema.type === 'array') && (
+          {(schema.type === "object" || schema.type === "array") && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label>Fields</Label>
@@ -190,89 +210,59 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                   Add Field
                 </Button>
               </div>
-              
+
               <div className="space-y-3">
                 {schema.fields?.map((field, index) => (
-                  <div key={index} className="flex gap-2 items-end">
-                    <div className="flex-1">
-                      <Label className="text-xs">Key</Label>
-                      <Input
-                        value={field.key}
-                        onChange={(e) => updateField(index, { ...field, key: e.target.value })}
-                        placeholder="field name"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <Label className="text-xs">Type</Label>
-                      <Select 
-                        value={field.type} 
-                        onValueChange={(value: 'string' | 'number' | 'boolean') => 
-                          updateField(index, { ...field, type: value })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="string">String</SelectItem>
-                          <SelectItem value="number">Number</SelectItem>
-                          <SelectItem value="boolean">Boolean</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button 
-                      onClick={() => removeField(index)} 
-                      size="sm" 
-                      variant="outline"
-                      className="mb-0"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <NestedFieldBuilder
+                    key={index}
+                    field={field}
+                    onUpdate={(updatedField) =>
+                      updateField(index, updatedField)
+                    }
+                    onRemove={() => removeField(index)}
+                  />
                 ))}
               </div>
             </div>
           )}
-
           <Separator />
-
-          <Button 
-            onClick={() => onGenerate(schema)} 
-            className="w-full" 
+          <Button
+            onClick={() => onGenerate(schema)}
+            className="w-full"
             disabled={isLoading}
             size="lg"
           >
-            {isLoading ? 'Generating...' : 'Generate Mock Endpoint'}
+            {isLoading ? "Generating..." : "Generate Mock Endpoint"}
           </Button>
         </CardContent>
-      </Card>      {/* JSON Preview */}
+      </Card>{" "}
+      {/* JSON Preview */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
             JSON Preview
           </CardTitle>
-          <CardDescription>
-            Live preview of your mock response
-          </CardDescription>
+          <CardDescription>Live preview of your mock response</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-2">
             <Badge variant="secondary">
-              {schema.type === 'array' ? `Array (${schema.length || 1} items)` : 
-               schema.type === 'object' ? 'Object' : 
-               `Primitive (${schema.primitiveType})`}
+              {schema.type === "array"
+                ? `Array (${schema.length || 1} items)`
+                : schema.type === "object"
+                ? "Object"
+                : `Primitive (${schema.primitiveType})`}
             </Badge>
-            {(schema.type === 'object' || schema.type === 'array') && (
+            {(schema.type === "object" || schema.type === "array") && (
               <Badge variant="outline">
-                {schema.fields?.length || 0} field{(schema.fields?.length || 0) !== 1 ? 's' : ''}
+                {schema.fields?.length || 0} field
+                {(schema.fields?.length || 0) !== 1 ? "s" : ""}
               </Badge>
             )}
           </div>
           <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-4 overflow-auto">
-            <pre className="text-sm">
-              {JSON.stringify(mockData, null, 2)}
-            </pre>
+            <pre className="text-sm">{JSON.stringify(mockData, null, 2)}</pre>
           </div>
         </CardContent>
       </Card>

@@ -1,6 +1,8 @@
 export interface SchemaField {
   key: string;
-  type: 'string' | 'number' | 'boolean';
+  type: "string" | "number" | "boolean" | "object";
+  value?: string | number | boolean; // For primitive values
+  fields?: SchemaField[]; // For nested objects
 }
 
 export interface MockSchema {
