@@ -4,17 +4,23 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, Clock } from 'lucide-react';
-import { formatExpiryDate } from '@/lib/mock-generator';
+import { Copy, ExternalLink, Clock, Trash2 } from "lucide-react";
+import { formatExpiryDate } from "@/lib/mock-generator";
+import Link from "next/link";
 
 interface EndpointResultProps {
   endpoint: string;
   id: string;
   expiresAt: string;
-  onReset: () => void;
+  onResetAction: () => void;
 }
 
-export function EndpointResult({ endpoint, expiresAt, onReset }: EndpointResultProps) {
+export function EndpointResult({
+  endpoint,
+  id,
+  expiresAt,
+  onResetAction,
+}: EndpointResultProps) {
   const [copied, setCopied] = useState(false);
   const fullUrl = `${window.location.origin}${endpoint}`;
   const expiryDate = new Date(expiresAt);
@@ -25,12 +31,12 @@ export function EndpointResult({ endpoint, expiresAt, onReset }: EndpointResultP
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err);
+      console.error("Failed to copy:", err);
     }
   };
 
   const openInNewTab = () => {
-    window.open(fullUrl, '_blank');
+    window.open(fullUrl, "_blank");
   };
 
   return (
@@ -63,7 +69,7 @@ export function EndpointResult({ endpoint, expiresAt, onReset }: EndpointResultP
               className="shrink-0"
             >
               <Copy className="h-4 w-4" />
-              {copied ? 'Copied!' : 'Copy'}
+              {copied ? "Copied!" : "Copy"}
             </Button>
             <Button
               onClick={openInNewTab}
@@ -76,10 +82,9 @@ export function EndpointResult({ endpoint, expiresAt, onReset }: EndpointResultP
             </Button>
           </div>
         </div>
-
         <div className="bg-white dark:bg-slate-900 border rounded-lg p-4 space-y-3">
           <h4 className="font-medium">Usage Examples:</h4>
-          
+
           <div className="space-y-3 text-sm">
             <div>
               <label className="text-xs text-muted-foreground">cURL:</label>
@@ -87,9 +92,11 @@ export function EndpointResult({ endpoint, expiresAt, onReset }: EndpointResultP
                 {`curl ${fullUrl}`}
               </pre>
             </div>
-            
+
             <div>
-              <label className="text-xs text-muted-foreground">JavaScript Fetch:</label>
+              <label className="text-xs text-muted-foreground">
+                JavaScript Fetch:
+              </label>
               <pre className="bg-slate-100 dark:bg-slate-800 p-2 rounded text-xs overflow-x-auto">
                 {`fetch('${fullUrl}')
   .then(response => response.json())
@@ -97,12 +104,17 @@ export function EndpointResult({ endpoint, expiresAt, onReset }: EndpointResultP
               </pre>
             </div>
           </div>
-        </div>
-
+        </div>{" "}
         <div className="flex gap-2 pt-2">
-          <Button onClick={onReset} variant="outline" className="flex-1">
+          <Button onClick={onResetAction} variant="outline" className="flex-1">
             Create Another Mock
           </Button>
+          <Link href={`/mock/${id}/delete`}>
+            <Button variant="destructive" size="sm">
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>

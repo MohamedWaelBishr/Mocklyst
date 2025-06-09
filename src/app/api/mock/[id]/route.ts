@@ -73,3 +73,44 @@ export async function OPTIONS() {
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
   return response;
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await params;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: "Missing endpoint ID" },
+        { status: 400 }
+      );
+    }
+
+    // Check if mock endpoint file exists
+    const filePath = path.join(STORAGE_DIR, `${id}.json`);
+
+    if (!fs.existsSync(filePath)) {
+      return NextResponse.json(
+        { error: "Mock endpoint not found" },
+        { status: 404 }
+      );
+    }
+
+    // Delete the mock endpoint file
+    fs.unlinkSync(filePath);
+
+    return NextResponse.json({
+      success: true,
+      message: "Mock endpoint deleted successfully",
+      id,
+    });
+  } catch (error) {
+    console.error("Error deleting mock endpoint:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
+}

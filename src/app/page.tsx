@@ -3,11 +3,20 @@
 import { useState } from 'react';
 import { SchemaDesigner } from '@/components/schema-designer';
 import { EndpointResult } from '@/components/endpoint-result';
+import { OnboardingTour, useOnboarding } from "@/components/onboarding-tour";
+import { Button } from "@/components/ui/button";
 import { MockSchema, CreateMockResponse } from '@/types';
 
 export default function Home() {
   const [result, setResult] = useState<CreateMockResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const {
+    showOnboarding,
+    hasSeenOnboarding,
+    completeOnboarding,
+    skipOnboarding,
+    resetOnboarding,
+  } = useOnboarding();
 
   const handleGenerate = async (schema: MockSchema) => {
     setIsLoading(true);
@@ -40,6 +49,14 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
+      {/* Onboarding Tour */}
+      {showOnboarding && (
+        <OnboardingTour
+          onCompleteAction={completeOnboarding}
+          onSkipAction={skipOnboarding}
+        />
+      )}
+
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="text-center mb-12">
@@ -47,9 +64,22 @@ export default function Home() {
             Mocklyst
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Create instant, temporary mock API endpoints in seconds. No login required, 
-            auto-expires in 7 days.
+            Create instant, temporary mock API endpoints in seconds. No login
+            required, auto-expires in 7 days.
           </p>
+
+          {hasSeenOnboarding && (
+            <div className="mt-4">
+              <Button
+                onClick={resetOnboarding}
+                variant="outline"
+                size="sm"
+                className="text-sm"
+              >
+                🎯 Show Tutorial Again
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Main Content */}
@@ -59,7 +89,7 @@ export default function Home() {
               endpoint={result.endpoint}
               id={result.id}
               expiresAt={result.expiresAt}
-              onReset={handleReset}
+              onResetAction={handleReset}
             />
           ) : (
             <SchemaDesigner onGenerate={handleGenerate} isLoading={isLoading} />
@@ -69,9 +99,9 @@ export default function Home() {
         {/* Footer */}
         <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
           <p>
-            Built with Next.js, shadcn/ui, and TailwindCSS • 
-            <a 
-              href="/docs" 
+            Built with Next.js, shadcn/ui, and TailwindCSS •
+            <a
+              href="/docs"
               className="ml-1 hover:text-gray-700 dark:hover:text-gray-200 underline"
             >
               Documentation

@@ -95,6 +95,33 @@ POST /api/cleanup
 Authorization: Bearer your-cleanup-token
 ```
 
+### Delete Mock Endpoint
+
+You can manually delete any mock endpoint before its auto-expiry:
+
+**Via Web Interface:**
+```bash
+# Visit this URL in your browser to get a confirmation page
+https://yourdomain.com/mock/{id}/delete
+```
+
+**Via API:**
+```bash
+DELETE /api/mock/{id}
+
+# Response
+{
+  "success": true,
+  "message": "Mock endpoint deleted successfully",
+  "id": "endpoint_id"
+}
+```
+
+**Use Cases:**
+- Clean up sensitive test data immediately
+- Remove endpoints that are no longer needed
+- Free up namespace for testing
+
 ## 📚 Response Types
 
 ### Object
