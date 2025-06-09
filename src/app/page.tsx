@@ -97,7 +97,13 @@ export default function Home() {
         </div>
 
         {/* Footer */}
-        <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
+        <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400 space-y-2">
+          <p className="font-medium text-gray-700 dark:text-gray-300">
+            Developed by{" "}
+            <span className="text-blue-600 dark:text-blue-400 font-semibold">
+              Eng. Mohamed Wael Bishr
+            </span>
+          </p>
           <p>
             Built with Next.js, shadcn/ui, and TailwindCSS •
             <a

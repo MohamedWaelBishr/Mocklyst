@@ -24,7 +24,6 @@ export default function DocsPage() {
             Everything you need to know about using Mocklyst
           </p>
         </div>
-
         <div className="space-y-8">
           {/* Quick Start */}
           <Card>
@@ -387,10 +386,15 @@ curl -X DELETE https://mocklyst.com/api/mock/abc123
               </div>
             </CardContent>
           </Card>
-        </div>
-
+        </div>{" "}
         {/* Footer */}
-        <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400">
+        <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400 space-y-2">
+          <p className="font-medium text-gray-700 dark:text-gray-300">
+            Developed by{" "}
+            <span className="text-blue-600 dark:text-blue-400 font-semibold">
+              Eng. Mohamed Wael Bishr
+            </span>
+          </p>
           <p>
             <Link
               href="/"

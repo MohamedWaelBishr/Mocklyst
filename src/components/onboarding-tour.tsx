@@ -16,49 +16,67 @@ interface OnboardingStep {
 
 const onboardingSteps: OnboardingStep[] = [
   {
-    id: 'welcome',
-    title: 'Welcome to Mocklyst!',
-    description: 'Create instant, temporary mock API endpoints in seconds. No login required, auto-expires in 7 days.',
+    id: "welcome",
+    title: "Welcome to Mocklyst!",
+    description:
+      "Create instant, temporary mock API endpoints in seconds. No login required, auto-expires in 7 days.",
     icon: <Zap className="h-6 w-6 text-blue-500" />,
     tips: [
-      'Perfect for testing and development',
-      'No registration or setup required',
-      'Supports objects, arrays, and primitives'
-    ]
+      "Perfect for testing and development",
+      "No registration or setup required",
+      "Supports objects, arrays, and primitives",
+      "Developed by Eng.  Mohamed Wael Bishr",
+    ],
   },
   {
-    id: 'create',
-    title: 'Creating Mock Endpoints',
-    description: 'Choose your response type, define your schema, and generate your endpoint in under 30 seconds.',
+    id: "create",
+    title: "Creating Mock Endpoints",
+    description:
+      "Choose your response type, define your schema, and generate your endpoint in under 30 seconds.",
     icon: <Lightbulb className="h-6 w-6 text-yellow-500" />,
     tips: [
-      'Use the schema designer to define your data structure',
-      'Preview your JSON response before generating',
-      'Copy the endpoint URL and use it immediately'
-    ]
+      "Use the schema designer to define your data structure",
+      "Preview your JSON response before generating",
+      "Copy the endpoint URL and use it immediately",
+    ],
   },
   {
-    id: 'manage',
-    title: 'Managing Your Endpoints',
-    description: 'All endpoints automatically expire after 7 days, but you can also delete them manually when needed.',
+    id: "manage",
+    title: "Managing Your Endpoints",
+    description:
+      "All endpoints automatically expire after 7 days, but you can also delete them manually when needed.",
     icon: <Trash2 className="h-6 w-6 text-red-500" />,
     tips: [
-      'Visit /mock/{id}/delete to manually delete an endpoint',
-      'Deleted endpoints return 404 errors immediately',
-      'Use deletion for sensitive test data cleanup'
-    ]
+      "Visit /mock/{id}/delete to manually delete an endpoint",
+      "Deleted endpoints return 404 errors immediately",
+      "Use deletion for sensitive test data cleanup",
+    ],
   },
   {
-    id: 'expiry',
-    title: 'Auto-Expiry System',
-    description: 'Endpoints automatically clean up after 7 days to keep the service fast and your test data private.',
+    id: "expiry",
+    title: "Auto-Expiry System",
+    description:
+      "Endpoints automatically clean up after 7 days to keep the service fast and your test data private.",
     icon: <Clock className="h-6 w-6 text-green-500" />,
     tips: [
-      'All endpoints expire exactly 7 days after creation',
-      'Expired endpoints are automatically deleted',
-      'No manual cleanup required for most use cases'
-    ]
-  }
+      "All endpoints expire exactly 7 days after creation",
+      "Expired endpoints are automatically deleted",
+      "No manual cleanup required for most use cases",
+    ],
+  },
+  {
+    id: "credits",
+    title: "About Mocklyst",
+    description:
+      "This tool was built to make API development and testing easier for developers worldwide.",
+    icon: <Lightbulb className="h-6 w-6 text-purple-500" />,
+    tips: [
+      "Developed by Eng.  Mohamed Wael Bishr",
+      "Open source and free to use",
+      "Built with Next.js, React, and modern web technologies",
+      "Designed with developers in mind",
+    ],
+  },
 ];
 
 interface OnboardingTourProps {

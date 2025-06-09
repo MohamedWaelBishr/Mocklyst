@@ -82,8 +82,8 @@ export default function DeleteMockPage() {
       <div className="container mx-auto px-4 py-8 max-w-2xl">
         {/* Header */}
         <div className="mb-8">
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="inline-flex items-center text-blue-600 dark:text-blue-400 hover:underline mb-4"
           >
             <ArrowLeft className="h-4 w-4 mr-1" />
@@ -111,7 +111,10 @@ export default function DeleteMockPage() {
             <CardContent>
               <div className="text-center">
                 <p className="text-green-700 dark:text-green-300 mb-4">
-                  Endpoint ID: <code className="bg-green-100 dark:bg-green-900 px-2 py-1 rounded text-sm">{id}</code>
+                  Endpoint ID:{" "}
+                  <code className="bg-green-100 dark:bg-green-900 px-2 py-1 rounded text-sm">
+                    {id}
+                  </code>
                 </p>
                 <p className="text-sm text-green-600 dark:text-green-400">
                   Redirecting to home page in a few seconds...
@@ -133,7 +136,11 @@ export default function DeleteMockPage() {
             <CardContent>
               <div className="space-y-4">
                 <p className="text-yellow-700 dark:text-yellow-300">
-                  The mock endpoint with ID <code className="bg-yellow-100 dark:bg-yellow-900 px-2 py-1 rounded text-sm">{id}</code> could not be found.
+                  The mock endpoint with ID{" "}
+                  <code className="bg-yellow-100 dark:bg-yellow-900 px-2 py-1 rounded text-sm">
+                    {id}
+                  </code>{" "}
+                  could not be found.
                 </p>
                 <p className="text-sm text-yellow-600 dark:text-yellow-400">
                   Possible reasons:
@@ -144,7 +151,7 @@ export default function DeleteMockPage() {
                   <li>The endpoint ID is incorrect</li>
                 </ul>
                 <div className="flex gap-2 pt-4">
-                  <Button onClick={() => router.push('/')} className="flex-1">
+                  <Button onClick={() => router.push("/")} className="flex-1">
                     Create New Mock
                   </Button>
                 </div>
@@ -163,21 +170,32 @@ export default function DeleteMockPage() {
                 </Badge>
               </CardTitle>
               <CardDescription className="text-red-700 dark:text-red-300">
-                This action cannot be undone. The endpoint will be permanently removed.
+                This action cannot be undone. The endpoint will be permanently
+                removed.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="bg-white dark:bg-slate-900 border rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2">Endpoint Details:</h4>
+                <h4 className="font-medium text-gray-900 dark:text-white mb-2">
+                  Endpoint Details:
+                </h4>
                 <div className="space-y-2 text-sm">
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">Endpoint ID:</span>
-                    <code className="ml-2 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">{id}</code>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Endpoint ID:
+                    </span>
+                    <code className="ml-2 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                      {id}
+                    </code>
                   </div>
                   <div>
-                    <span className="text-gray-500 dark:text-gray-400">URL:</span>
+                    <span className="text-gray-500 dark:text-gray-400">
+                      URL:
+                    </span>
                     <code className="ml-2 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                      {typeof window !== 'undefined' ? `${window.location.origin}/api/mock/${id}` : `/api/mock/${id}`}
+                      {typeof window !== "undefined"
+                        ? `${window.location.origin}/api/mock/${id}`
+                        : `/api/mock/${id}`}
                     </code>
                   </div>
                 </div>
@@ -187,9 +205,13 @@ export default function DeleteMockPage() {
                 <div className="bg-red-100 dark:bg-red-900 border border-red-200 dark:border-red-800 rounded-lg p-4">
                   <div className="flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                    <span className="text-red-800 dark:text-red-200 font-medium">Error</span>
+                    <span className="text-red-800 dark:text-red-200 font-medium">
+                      Error
+                    </span>
                   </div>
-                  <p className="text-red-700 dark:text-red-300 text-sm mt-1">{error}</p>
+                  <p className="text-red-700 dark:text-red-300 text-sm mt-1">
+                    {error}
+                  </p>
                 </div>
               )}
 
@@ -197,10 +219,13 @@ export default function DeleteMockPage() {
                 <div className="flex items-start gap-2">
                   <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mt-0.5" />
                   <div>
-                    <h5 className="text-yellow-800 dark:text-yellow-200 font-medium text-sm">Warning</h5>
+                    <h5 className="text-yellow-800 dark:text-yellow-200 font-medium text-sm">
+                      Warning
+                    </h5>
                     <p className="text-yellow-700 dark:text-yellow-300 text-sm mt-1">
-                      Once deleted, this mock endpoint will no longer be accessible. Any applications or services 
-                      using this endpoint will receive 404 errors.
+                      Once deleted, this mock endpoint will no longer be
+                      accessible. Any applications or services using this
+                      endpoint will receive 404 errors.
                     </p>
                   </div>
                 </div>
@@ -237,6 +262,24 @@ export default function DeleteMockPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Footer */}
+        <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400 space-y-2">
+          <p className="font-medium text-gray-700 dark:text-gray-300">
+            Developed by{" "}
+            <span className="text-blue-600 dark:text-blue-400 font-semibold">
+              Eng. Mohamed Wael Bishr
+            </span>
+          </p>
+          <p>
+            <Link
+              href="/"
+              className="hover:text-gray-700 dark:hover:text-gray-200 underline"
+            >
+              ← Back to Mocklyst Generator
+            </Link>
+          </p>
+        </footer>
       </div>
     </div>
   );
