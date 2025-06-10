@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useRef } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
 
 interface AnimatedCursorProps {
   className?: string;
@@ -24,9 +23,7 @@ export const AnimatedCursor = ({
   const cursorOuterRef = useRef<HTMLDivElement>(null);
   const cursorInnerRef = useRef<HTMLDivElement>(null);
   
-  const cursorXY = useMotionValue(-100);
-  const cursorX = useSpring(cursorXY, { damping: 20, stiffness: 300, mass: 0.5 });
-  const cursorY = useSpring(cursorXY, { damping: 20, stiffness: 300, mass: 0.5 });
+
 
   useEffect(() => {
     const moveCursor = (e: MouseEvent) => {
