@@ -2,6 +2,8 @@
 
 import { useState, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
+import { AnimatedButton } from "@/components/ui/animated-button";
+import { AnimatedLoader } from "@/components/ui/animated-loader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -152,13 +154,12 @@ const RecursiveField = memo(
           )}
 
           <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
-            {" "}
             <Input
               placeholder="Field name"
               value={field.key || ""}
               onChange={(e) => handleKeyChange(e.target.value)}
               className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-            />{" "}
+            />
             <Select value={field.type} onValueChange={handleTypeChange}>
               <SelectTrigger className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                 <SelectValue />
@@ -177,7 +178,7 @@ const RecursiveField = memo(
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>{" "}
+            </Select>
             {field.type !== "object" && (
               <div className="relative">
                 <Input
@@ -212,7 +213,7 @@ const RecursiveField = memo(
               >
                 <Plus className="h-4 w-4" />
               </Button>
-            )}{" "}
+            )}
             <Button
               type="button"
               variant="ghost"
@@ -273,7 +274,6 @@ const RecursiveField = memo(
         {/* Recursive nested fields */}
         {field.type === "object" && isExpanded && field.fields && (
           <div className="space-y-3 ml-6 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
-            {" "}
             {field.fields.map((nestedField, index) => (
               <RecursiveField
                 key={`${path}.${index}`}
@@ -324,7 +324,6 @@ const RecursiveFieldWrapper = memo(
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-3">
-          {" "}
           {field.type === "object" && (
             <Button
               type="button"
@@ -342,7 +341,6 @@ const RecursiveFieldWrapper = memo(
             </Button>
           )}
           <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
-            {" "}
             <Input
               placeholder="Field name"
               value={field.key || ""}
@@ -350,7 +348,7 @@ const RecursiveFieldWrapper = memo(
                 onUpdateField(path, { ...field, key: e.target.value })
               }
               className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-            />{" "}
+            />
             <Select
               value={field.type}
               onValueChange={(type: SmartFieldType) => {
@@ -374,7 +372,7 @@ const RecursiveFieldWrapper = memo(
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>{" "}
+            </Select>
             {field.type !== "object" && (
               <div className="relative">
                 <Input
@@ -402,7 +400,6 @@ const RecursiveFieldWrapper = memo(
             )}
           </div>
           <div className="flex items-center gap-1">
-            {" "}
             {field.type === "object" && (
               <Button
                 type="button"
@@ -414,7 +411,7 @@ const RecursiveFieldWrapper = memo(
               >
                 <Plus className="h-4 w-4" />
               </Button>
-            )}{" "}
+            )}
             <Button
               type="button"
               variant="ghost"
@@ -426,7 +423,7 @@ const RecursiveFieldWrapper = memo(
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-        </div>{" "}
+        </div>
         {/* Recursive nested fields */}
         {field.type === "object" && isExpanded && field.fields && (
           <div className="space-y-3 ml-6 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
@@ -919,7 +916,7 @@ export function SchemaDesigner({
             </form>
           )}
         </section>
-        {/* JSON Preview Section */}{" "}
+        {/* JSON Preview Section */}
         <section aria-label="JSON Preview" className="space-y-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -934,7 +931,7 @@ export function SchemaDesigner({
                 }}
               >
                 JSON Preview
-              </h3>{" "}
+              </h3>
             </div>
             <motion.div whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.05 }}>
               <Button
@@ -978,15 +975,14 @@ export function SchemaDesigner({
                   )}
                 </AnimatePresence>
               </Button>
-            </motion.div>{" "}
+            </motion.div>
           </div>
           <p className="text-slate-600 dark:text-slate-400 font-medium mb-6">
             Live preview of your mock response
-          </p>{" "}
+          </p>
           <hr className="border-slate-200 dark:border-slate-700" />
           <div className="relative">
             <div className="rounded-xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700">
-              {" "}
               <Editor
                 height="400px"
                 language="json"
@@ -1031,16 +1027,21 @@ export function SchemaDesigner({
             </div>
           </div>
         </section>
-      </div>{" "}
+      </div>
       <div className="mt-12 text-center">
-        <Button
+        <AnimatedButton
           className="px-8 py-4 text-lg font-semibold rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           onClick={() => onGenerateAction(schema)}
           disabled={isLoading || !isSchemaValid()}
+          duration={3000}
         >
-          <Settings2 className="h-5 w-5 mr-2" />
-          Generate Mock Endpoint
-        </Button>
+          {isLoading ? (
+            <AnimatedLoader size="sm" variant="dots" className="mr-2" />
+          ) : (
+            <Settings2 className="h-5 w-5 mr-2" />
+          )}
+          {isLoading ? "Generating..." : "Generate Mock Endpoint"}
+        </AnimatedButton>
         {!isSchemaValid() && (
           <p className="mt-3 text-sm text-red-600 dark:text-red-400">
             Please add at least one field to generate a mock endpoint

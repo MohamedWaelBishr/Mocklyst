@@ -6,7 +6,13 @@ import { SchemaDesigner } from "@/components/schema-designer";
 import { EndpointResult } from "@/components/endpoint-result";
 import { OnboardingTour, useOnboarding } from "@/components/onboarding-tour";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
+import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
+import { FlipWords } from "@/components/ui/flip-words";
+import { AnimatedButton } from "@/components/ui/animated-button";
+import { Boxes } from "@/components/ui/background-effects";
+import { CardHoverEffect } from "@/components/ui/card-hover-effect";
+import { Spotlight } from "@/components/ui/spotlight";
+import { FloatingParticles } from "@/components/ui/floating-particles";
 import { MockSchema, CreateMockResponse } from "@/types";
 import {
   Zap,
@@ -99,10 +105,24 @@ export default function Home() {
         className="fixed top-6 right-6 z-50"
       >
         <ThemeToggle />
-      </motion.div>
-
+      </motion.div>{" "}
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
+        {/* Aceternity UI Spotlight Effect */}
+        <Spotlight
+          className="-top-40 left-0 md:left-60 md:-top-20"
+          fill="rgba(59, 130, 246, 0.3)"
+        />
+
+        {/* Floating Particles */}
+        <FloatingParticles
+          particleCount={30}
+          colors={["#3b82f6", "#8b5cf6", "#ec4899", "#10b981"]}
+        />
+
+        {/* Aceternity UI Boxes Background */}
+        <Boxes />
+
         <motion.div
           animate={{
             rotate: 360,
@@ -126,7 +146,6 @@ export default function Home() {
           className="absolute -bottom-1/2 -left-1/2 w-96 h-96 bg-gradient-to-tr from-purple-200/20 to-pink-300/20 dark:from-purple-800/10 dark:to-pink-900/10 rounded-full blur-3xl"
         />
       </div>
-
       {/* Onboarding Tour */}
       <AnimatePresence>
         {showOnboarding && (
@@ -136,7 +155,6 @@ export default function Home() {
           />
         )}
       </AnimatePresence>
-
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -159,27 +177,42 @@ export default function Home() {
             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Instant Mock API Generator
             </span>
-          </motion.div>
-
+          </motion.div>{" "}
           {/* Main Title */}
-          <motion.h1
-            variants={itemVariants}
-            className="text-6xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 dark:from-white dark:via-blue-200 dark:to-indigo-200 leading-tight"
-          >
-            Mocklyst
-          </motion.h1>
-
+          <div className="text-6xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 dark:from-white dark:via-blue-200 dark:to-indigo-200 leading-tight">
+            <TextGenerateEffect
+              words="Mocklyst"
+              className="text-6xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 dark:from-white dark:via-blue-200 dark:to-indigo-200"
+              duration={0.8}
+              filter={true}
+            />
+          </div>{" "}
           {/* Subtitle */}
-          <motion.p
-            variants={itemVariants}
-            className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed"
-          >
-            Create instant, temporary mock API endpoints in seconds.
-            <span className="block mt-2 text-lg text-gray-500 dark:text-gray-400">
-              No login required • Auto-expires in 7 days • Zero configuration
-            </span>
-          </motion.p>
-
+          <div className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            <TextGenerateEffect
+              words="Create instant, temporary mock API endpoints in seconds."
+              className="text-xl md:text-2xl text-gray-600 dark:text-gray-300"
+              duration={0.6}
+              filter={false}
+            />
+            <motion.div
+              variants={itemVariants}
+              className="mt-2 text-lg text-gray-500 dark:text-gray-400"
+            >
+              <FlipWords
+                words={[
+                  "No login required",
+                  "Auto-expires in 7 days",
+                  "Zero configuration",
+                  "Instant setup",
+                ]}
+                duration={2500}
+                className="text-lg text-blue-600 dark:text-blue-400 font-medium"
+              />
+              <span className="mx-2">•</span>
+              <span>Built for developers</span>
+            </motion.div>
+          </div>
           {/* Feature Pills */}
           <motion.div
             variants={itemVariants}
@@ -205,21 +238,22 @@ export default function Home() {
                 </span>
               </motion.div>
             ))}
-          </motion.div>
-
+          </motion.div>{" "}
           {/* Tutorial Button */}
           {hasSeenOnboarding && (
             <motion.div variants={itemVariants} className="mt-6">
-              <Button
+              <AnimatedButton
                 onClick={resetOnboarding}
                 variant="outline"
                 size="sm"
-                className="group bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-blue-200/50 dark:border-slate-700/50 hover:bg-blue-50 dark:hover:bg-slate-700 transition-all duration-300"
+                // movingBorder={true}
+                // borderClassName="bg-gradient-to-r from-blue-500 to-purple-500"
+                className="group  dark:bg-slate-800/80 backdrop-blur-sm transition-all duration-300"
               >
                 <span className="mr-2">🎯</span>
                 Show Tutorial Again
                 <ArrowRight className="h-3 w-3 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
-              </Button>
+              </AnimatedButton>
             </motion.div>
           )}
         </motion.div>
@@ -290,15 +324,7 @@ export default function Home() {
                 color: "green",
               },
             ].map((feature) => (
-              <motion.div
-                key={feature.title}
-                variants={featureVariants}
-                whileHover={{
-                  scale: 1.02,
-                  translateY: -5,
-                }}
-                className="group p-6 rounded-2xl bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-white/30 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300"
-              >
+              <CardHoverEffect key={feature.title} className="p-6">
                 <div
                   className={`w-12 h-12 rounded-xl bg-${feature.color}-100 dark:bg-${feature.color}-900/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
                 >
@@ -312,7 +338,7 @@ export default function Home() {
                 <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
                   {feature.description}
                 </p>
-              </motion.div>
+              </CardHoverEffect>
             ))}
           </motion.div>
         )}

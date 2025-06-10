@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
+import { MovingBorder } from "@/components/ui/moving-border";
 import { Copy, ExternalLink, Clock, Trash2, Check } from "lucide-react";
 import { formatExpiryDate } from "@/lib/mock-generator";
 import Link from "next/link";
@@ -43,7 +45,12 @@ export function EndpointResult({
     <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
       <CardHeader>
         <CardTitle className="text-green-800 dark:text-green-200 flex items-center gap-2">
-          🎉 Mock Endpoint Created!
+          <TextGenerateEffect
+            words="🎉 Mock Endpoint Created!"
+            className="text-green-800 dark:text-green-200"
+            duration={0.5}
+            filter={false}
+          />
           <Badge variant="secondary" className="ml-auto">
             <Clock className="h-3 w-3 mr-1" />
             {formatExpiryDate(expiryDate)}
@@ -63,48 +70,53 @@ export function EndpointResult({
               {fullUrl}
             </div>{" "}
             <motion.div whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.05 }}>
-              <Button
-                onClick={copyToClipboard}
-                variant="outline"
-                size="sm"
-                className="shrink-0 relative overflow-hidden"
+              <MovingBorder
+                duration={2000}
+                className="bg-white dark:bg-slate-900 text-black dark:text-white border-green-300 dark:border-green-700"
               >
-                <AnimatePresence mode="wait">
-                  {copied ? (
-                    <motion.div
-                      key="copied"
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      exit={{ scale: 0, rotate: 180 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 20,
-                      }}
-                      className="flex items-center gap-2"
-                    >
-                      <Check className="h-4 w-4 text-green-600" />
-                      <span className="text-green-600">Copied!</span>
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="copy"
-                      initial={{ scale: 0, rotate: 180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      exit={{ scale: 0, rotate: -180 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 20,
-                      }}
-                      className="flex items-center gap-2"
-                    >
-                      <Copy className="h-4 w-4" />
-                      Copy
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Button>
+                <Button
+                  onClick={copyToClipboard}
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 relative overflow-hidden bg-transparent border-0"
+                >
+                  <AnimatePresence mode="wait">
+                    {copied ? (
+                      <motion.div
+                        key="copied"
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        exit={{ scale: 0, rotate: 180 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Check className="h-4 w-4 text-green-600" />
+                        <span className="text-green-600">Copied!</span>
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="copy"
+                        initial={{ scale: 0, rotate: 180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        exit={{ scale: 0, rotate: -180 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
+                        className="flex items-center gap-2"
+                      >
+                        <Copy className="h-4 w-4" />
+                        Copy
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Button>
+              </MovingBorder>
             </motion.div>
             <Button
               onClick={openInNewTab}
