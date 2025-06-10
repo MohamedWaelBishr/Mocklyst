@@ -1,11 +1,7 @@
 "use server";
 import { NextRequest, NextResponse } from "next/server";
 import { generateMockData } from "@/lib/mock-generator";
-import { MockEndpoint } from "@/types";
-import fs from "fs";
-import path from "path";
-
-const STORAGE_DIR = path.join(process.cwd(), "data", "mocks");
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function GET(
   request: NextRequest,
@@ -21,26 +17,28 @@ export async function GET(
       );
     }
 
-    // Load mock endpoint configuration
-    const filePath = path.join(STORAGE_DIR, `${id}.json`);
+    // Load mock endpoint configuration from Supabase
+    const { data: mockEndpoint, error: dbError } = await supabaseAdmin
+      .from("mock_endpoints")
+      .select("*")
+      .eq("id", id)
+      .single();
 
-    if (!fs.existsSync(filePath)) {
+    if (dbError || !mockEndpoint) {
       return NextResponse.json(
         { error: "Mock endpoint not found" },
         { status: 404 }
       );
     }
 
-    const mockEndpointData = fs.readFileSync(filePath, "utf-8");
-    const mockEndpoint: MockEndpoint = JSON.parse(mockEndpointData);
-
     // Check if endpoint has expired
     const now = new Date();
-    const expiresAt = new Date(mockEndpoint.expiresAt);
+    const expiresAt = new Date(mockEndpoint.expires_at);
 
     if (now > expiresAt) {
       // Clean up expired endpoint
-      fs.unlinkSync(filePath);
+      await supabaseAdmin.from("mock_endpoints").delete().eq("id", id);
+
       return NextResponse.json(
         { error: "Mock endpoint has expired" },
         { status: 410 }
@@ -70,7 +68,7 @@ export async function OPTIONS() {
   // Handle preflight CORS requests
   const response = new NextResponse(null, { status: 200 });
   response.headers.set("Access-Control-Allow-Origin", "*");
-  response.headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
+  response.headers.set("Access-Control-Allow-Methods", "GET, DELETE, OPTIONS");
   response.headers.set("Access-Control-Allow-Headers", "Content-Type");
   return response;
 }
@@ -89,18 +87,33 @@ export async function DELETE(
       );
     }
 
-    // Check if mock endpoint file exists
-    const filePath = path.join(STORAGE_DIR, `${id}.json`);
+    // Check if mock endpoint exists in database
+    const { data: mockEndpoint, error: selectError } = await supabaseAdmin
+      .from("mock_endpoints")
+      .select("id")
+      .eq("id", id)
+      .single();
 
-    if (!fs.existsSync(filePath)) {
+    if (selectError || !mockEndpoint) {
       return NextResponse.json(
         { error: "Mock endpoint not found" },
         { status: 404 }
       );
     }
 
-    // Delete the mock endpoint file
-    fs.unlinkSync(filePath);
+    // Delete the mock endpoint from database
+    const { error: deleteError } = await supabaseAdmin
+      .from("mock_endpoints")
+      .delete()
+      .eq("id", id);
+
+    if (deleteError) {
+      console.error("Database error:", deleteError);
+      return NextResponse.json(
+        { error: "Failed to delete mock endpoint" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,

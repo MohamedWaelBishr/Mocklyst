@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const cleanedCount = cleanupExpiredEndpoints();
+    const cleanedCount = await cleanupExpiredEndpoints();
 
     return NextResponse.json({
       success: true,

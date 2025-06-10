@@ -1,16 +1,8 @@
 "use server";
 import { NextRequest, NextResponse } from "next/server";
 import { generateUniqueId } from "@/lib/mock-generator";
-import { CreateMockRequest, MockEndpoint } from "@/types";
-import fs from "fs";
-import path from "path";
-
-const STORAGE_DIR = path.join(process.cwd(), "data", "mocks");
-
-// Ensure storage directory exists
-if (!fs.existsSync(STORAGE_DIR)) {
-  fs.mkdirSync(STORAGE_DIR, { recursive: true });
-}
+import { CreateMockRequest } from "@/types";
+import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,7 +33,7 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
     // Create mock endpoint data
-    const mockEndpoint: MockEndpoint = {
+    const mockEndpointData = {
       id,
       config: {
         type: body.type,
@@ -51,13 +43,22 @@ export async function POST(request: NextRequest) {
         primitiveValue: body.primitiveValue,
       },
       endpoint,
-      createdAt: now,
-      expiresAt,
+      created_at: now.toISOString(),
+      expires_at: expiresAt.toISOString(),
     };
 
-    // Save to file system (temporary storage)
-    const filePath = path.join(STORAGE_DIR, `${id}.json`);
-    fs.writeFileSync(filePath, JSON.stringify(mockEndpoint, null, 2));
+    // Save to Supabase database
+    const { error: dbError } = await supabaseAdmin
+      .from("mock_endpoints")
+      .insert(mockEndpointData);
+
+    if (dbError) {
+      console.error("Database error:", dbError);
+      return NextResponse.json(
+        { error: "Failed to save mock endpoint" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       endpoint,
