@@ -396,12 +396,19 @@ curl -X DELETE https://mocklyst.com/api/mock/abc123
               Eng. Mohamed Wael Bishr
             </span>
           </p>
-          <p>
+          <p className="space-x-4">
             <Link
               href="/"
               className="hover:text-gray-700 dark:hover:text-gray-200 underline"
             >
               ← Back to Mocklyst Generator
+            </Link>
+            <span>•</span>
+            <Link
+              href="/terms"
+              className="hover:text-gray-700 dark:hover:text-gray-200 underline"
+            >
+              Terms & Conditions
             </Link>
           </p>
         </footer>

@@ -96,7 +96,6 @@ export default function DeleteMockPage() {
             Permanently remove this mock API endpoint
           </p>
         </div>
-
         {deleted ? (
           <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
             <CardHeader>
@@ -261,8 +260,7 @@ export default function DeleteMockPage() {
               </div>
             </CardContent>
           </Card>
-        )}
-
+        )}{" "}
         {/* Footer */}
         <footer className="mt-16 text-center text-sm text-gray-500 dark:text-gray-400 space-y-2">
           <p className="font-medium text-gray-700 dark:text-gray-300">
@@ -271,12 +269,19 @@ export default function DeleteMockPage() {
               Eng. Mohamed Wael Bishr
             </span>
           </p>
-          <p>
+          <p className="space-x-4">
             <Link
               href="/"
               className="hover:text-gray-700 dark:hover:text-gray-200 underline"
             >
               ← Back to Mocklyst Generator
+            </Link>
+            <span>•</span>
+            <Link
+              href="/terms"
+              className="hover:text-gray-700 dark:hover:text-gray-200 underline"
+            >
+              Terms & Conditions
             </Link>
           </p>
         </footer>

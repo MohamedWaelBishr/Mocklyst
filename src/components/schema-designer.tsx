@@ -18,10 +18,12 @@ import {
   Trash2,
   ChevronDown,
   ChevronRight,
+  Check,
 } from "lucide-react";
 import { MockSchema, SchemaField } from "@/types";
 import { generateMockData } from "@/lib/mock-generator";
 import Editor from "@monaco-editor/react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SchemaDesignerProps {
   onGenerate: (schema: MockSchema) => void;
@@ -368,10 +370,11 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
       },
     ],
   });
-
   const [expandedFields, setExpandedFields] = useState<Set<string>>(
     new Set(["1"])
   );
+
+  const [copied, setCopied] = useState(false);
 
   // Optimized utility functions
   const pathToArray = useCallback((path: string): number[] => {
@@ -501,6 +504,29 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
     }
   }, [schema.type]);
 
+  // Check if the schema is valid for generation
+  const isSchemaValid = useCallback(() => {
+    if (schema.type === "primitive") {
+      return true; // Primitive types don't need fields
+    }
+
+    if (schema.type === "object" || schema.type === "array") {
+      return schema.fields && schema.fields.length > 0;
+    }
+    return false;
+  }, [schema]);
+
+  // Copy to clipboard function
+  const copyJsonToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(mockData, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 3000); // 3 seconds for better UX
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
   const mockData = generateMockData(schema);
   return (
     <div className="backdrop-blur-sm bg-white/70 dark:bg-slate-900/70 rounded-3xl shadow-xl border border-white/40 dark:border-slate-700/40 p-8 lg:p-12">
@@ -571,21 +597,51 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
                 }}
               >
                 JSON Preview
-              </h3>
+              </h3>{" "}
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-              aria-label="Copy JSON to clipboard"
-              onClick={() => {
-                navigator.clipboard.writeText(
-                  JSON.stringify(mockData, null, 2)
-                );
-              }}
-            >
-              <Copy className="h-4 w-4" />
-            </Button>{" "}
+            <motion.div whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.05 }}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 relative overflow-hidden"
+                aria-label="Copy JSON to clipboard"
+                onClick={copyJsonToClipboard}
+              >
+                <AnimatePresence mode="wait">
+                  {copied ? (
+                    <motion.div
+                      key="copied"
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0, rotate: 180 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20,
+                      }}
+                      className="flex items-center justify-center"
+                    >
+                      <Check className="h-4 w-4 text-green-600" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="copy"
+                      initial={{ scale: 0, rotate: 180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0, rotate: -180 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20,
+                      }}
+                      className="flex items-center justify-center"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </Button>
+            </motion.div>{" "}
           </div>
           <p className="text-slate-600 dark:text-slate-400 font-medium mb-6">
             Live preview of your mock response
@@ -638,17 +694,21 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
             </div>
           </div>
         </section>
-      </div>
-
+      </div>{" "}
       <div className="mt-12 text-center">
         <Button
-          className="px-8 py-4 text-lg font-semibold rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          className="px-8 py-4 text-lg font-semibold rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           onClick={() => onGenerate(schema)}
-          disabled={isLoading}
+          disabled={isLoading || !isSchemaValid()}
         >
           <Settings2 className="h-5 w-5 mr-2" />
           Generate Mock Endpoint
         </Button>
+        {!isSchemaValid() && (
+          <p className="mt-3 text-sm text-red-600 dark:text-red-400">
+            Please add at least one field to generate a mock endpoint
+          </p>
+        )}
       </div>
     </div>
   );

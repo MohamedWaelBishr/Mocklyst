@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, ExternalLink, Clock, Trash2 } from "lucide-react";
+import { Copy, ExternalLink, Clock, Trash2, Check } from "lucide-react";
 import { formatExpiryDate } from "@/lib/mock-generator";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface EndpointResultProps {
   endpoint: string;
@@ -24,12 +25,11 @@ export function EndpointResult({
   const [copied, setCopied] = useState(false);
   const fullUrl = `${window.location.origin}${endpoint}`;
   const expiryDate = new Date(expiresAt);
-
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(fullUrl);
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => setCopied(false), 3000); // Increased to 3 seconds for better UX
     } catch (err) {
       console.error("Failed to copy:", err);
     }
@@ -61,16 +61,51 @@ export function EndpointResult({
           <div className="flex gap-2">
             <div className="flex-1 p-3 bg-white dark:bg-slate-900 border rounded-lg font-mono text-sm">
               {fullUrl}
-            </div>
-            <Button
-              onClick={copyToClipboard}
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-            >
-              <Copy className="h-4 w-4" />
-              {copied ? "Copied!" : "Copy"}
-            </Button>
+            </div>{" "}
+            <motion.div whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.05 }}>
+              <Button
+                onClick={copyToClipboard}
+                variant="outline"
+                size="sm"
+                className="shrink-0 relative overflow-hidden"
+              >
+                <AnimatePresence mode="wait">
+                  {copied ? (
+                    <motion.div
+                      key="copied"
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0, rotate: 180 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20,
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Check className="h-4 w-4 text-green-600" />
+                      <span className="text-green-600">Copied!</span>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="copy"
+                      initial={{ scale: 0, rotate: 180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0, rotate: -180 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20,
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copy
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </Button>
+            </motion.div>
             <Button
               onClick={openInNewTab}
               variant="outline"

@@ -343,6 +343,14 @@ export default function Home() {
             >
               Documentation
             </motion.a>
+            {" • "}
+            <motion.a
+              href="/terms"
+              className="hover:text-gray-700 dark:hover:text-gray-200 underline underline-offset-4 decoration-blue-400 hover:decoration-blue-600 transition-colors duration-200"
+              whileHover={{ scale: 1.05 }}
+            >
+              Terms
+            </motion.a>
           </motion.p>
         </motion.footer>
       </motion.div>
