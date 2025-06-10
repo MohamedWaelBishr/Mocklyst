@@ -135,14 +135,15 @@ const RecursiveField = memo(
 
     return (
       <div className="space-y-3">
+        {" "}
         <div className="flex items-center gap-3">
-          {field.type === "object" && (
+          {(field.type === "object" || field.type === "array") && (
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
-              aria-label="Toggle object"
+              aria-label={`Toggle ${field.type}`}
               onClick={handleToggleExpanded}
             >
               {isExpanded ? (
@@ -152,7 +153,6 @@ const RecursiveField = memo(
               )}
             </Button>
           )}
-
           <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
             <Input
               placeholder="Field name"
@@ -178,8 +178,8 @@ const RecursiveField = memo(
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
-            {field.type !== "object" && (
+            </Select>{" "}
+            {field.type !== "object" && field.type !== "array" && (
               <div className="relative">
                 <Input
                   placeholder="Enter value or generate"
@@ -199,16 +199,33 @@ const RecursiveField = memo(
                 </Button>
               </div>
             )}
-          </div>
-
+            {field.type === "array" && (
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                value={field.length || 3}
+                onChange={(e) =>
+                  onUpdateField(path, {
+                    ...field,
+                    length: Math.min(Math.max(1, Number(e.target.value)), 100),
+                  })
+                }
+                placeholder="Array length (1-100)"
+                className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+              />
+            )}
+          </div>{" "}
           <div className="flex items-center gap-1">
-            {field.type === "object" && (
+            {(field.type === "object" || field.type === "array") && (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30"
-                aria-label="Add nested field"
+                aria-label={`Add ${
+                  field.type === "array" ? "array item" : "nested"
+                } field`}
                 onClick={handleAddNestedField}
               >
                 <Plus className="h-4 w-4" />
@@ -226,7 +243,6 @@ const RecursiveField = memo(
             </Button>
           </div>
         </div>
-
         {/* Smart Suggestions */}
         {showSuggestions && suggestions.length > 0 && (
           <motion.div
@@ -269,26 +285,33 @@ const RecursiveField = memo(
               ))}
             </div>
           </motion.div>
-        )}
-
+        )}{" "}
         {/* Recursive nested fields */}
-        {field.type === "object" && isExpanded && field.fields && (
-          <div className="space-y-3 ml-6 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
-            {field.fields.map((nestedField, index) => (
-              <RecursiveField
-                key={`${path}.${index}`}
-                field={nestedField}
-                path={`${path}.${index}`}
-                depth={depth + 1}
-                isExpanded={false} // Will be managed by expandedFields state in parent
-                onToggleExpanded={onToggleExpanded}
-                onUpdateField={onUpdateField}
-                onAddNestedField={onAddNestedField}
-                onRemoveField={onRemoveField}
-              />
-            ))}
-          </div>
-        )}
+        {(field.type === "object" || field.type === "array") &&
+          isExpanded &&
+          field.fields && (
+            <div className="space-y-3 ml-6 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
+              {field.type === "array" && (
+                <div className="text-xs text-slate-500 dark:text-slate-400 italic mb-2">
+                  Array Item Template ({field.length || 3} items will be
+                  generated)
+                </div>
+              )}
+              {field.fields.map((nestedField, index) => (
+                <RecursiveField
+                  key={`${path}.${index}`}
+                  field={nestedField}
+                  path={`${path}.${index}`}
+                  depth={depth + 1}
+                  isExpanded={false} // Will be managed by expandedFields state in parent
+                  onToggleExpanded={onToggleExpanded}
+                  onUpdateField={onUpdateField}
+                  onAddNestedField={onAddNestedField}
+                  onRemoveField={onRemoveField}
+                />
+              ))}
+            </div>
+          )}
       </div>
     );
   }
@@ -323,14 +346,15 @@ const RecursiveFieldWrapper = memo(
 
     return (
       <div className="space-y-3">
+        {" "}
         <div className="flex items-center gap-3">
-          {field.type === "object" && (
+          {(field.type === "object" || field.type === "array") && (
             <Button
               type="button"
               variant="ghost"
               size="sm"
               className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
-              aria-label="Toggle object"
+              aria-label={`Toggle ${field.type}`}
               onClick={() => onToggleExpanded(path)}
             >
               {isExpanded ? (
@@ -372,8 +396,8 @@ const RecursiveFieldWrapper = memo(
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
-            {field.type !== "object" && (
+            </Select>{" "}
+            {field.type !== "object" && field.type !== "array" && (
               <div className="relative">
                 <Input
                   placeholder="Enter value or generate"
@@ -398,15 +422,33 @@ const RecursiveFieldWrapper = memo(
                 </Button>
               </div>
             )}
-          </div>
+            {field.type === "array" && (
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                value={field.length || 3}
+                onChange={(e) =>
+                  onUpdateField(path, {
+                    ...field,
+                    length: Math.min(Math.max(1, Number(e.target.value)), 100),
+                  })
+                }
+                placeholder="Array length (1-100)"
+                className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+              />
+            )}
+          </div>{" "}
           <div className="flex items-center gap-1">
-            {field.type === "object" && (
+            {(field.type === "object" || field.type === "array") && (
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/30"
-                aria-label="Add nested field"
+                aria-label={`Add ${
+                  field.type === "array" ? "array item" : "nested"
+                } field`}
                 onClick={() => onAddNestedField(path)}
               >
                 <Plus className="h-4 w-4" />
@@ -423,25 +465,33 @@ const RecursiveFieldWrapper = memo(
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-        </div>
+        </div>{" "}
         {/* Recursive nested fields */}
-        {field.type === "object" && isExpanded && field.fields && (
-          <div className="space-y-3 ml-6 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
-            {field.fields.map((nestedField, index) => (
-              <RecursiveFieldWrapper
-                key={`${path}.${index}`}
-                field={nestedField}
-                path={`${path}.${index}`}
-                depth={depth + 1}
-                expandedFields={expandedFields}
-                onToggleExpanded={onToggleExpanded}
-                onUpdateField={onUpdateField}
-                onAddNestedField={onAddNestedField}
-                onRemoveField={onRemoveField}
-              />
-            ))}
-          </div>
-        )}
+        {(field.type === "object" || field.type === "array") &&
+          isExpanded &&
+          field.fields && (
+            <div className="space-y-3 ml-6 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
+              {field.type === "array" && (
+                <div className="text-xs text-slate-500 dark:text-slate-400 italic mb-2">
+                  Array Item Template ({field.length || 3} items will be
+                  generated)
+                </div>
+              )}
+              {field.fields.map((nestedField, index) => (
+                <RecursiveFieldWrapper
+                  key={`${path}.${index}`}
+                  field={nestedField}
+                  path={`${path}.${index}`}
+                  depth={depth + 1}
+                  expandedFields={expandedFields}
+                  onToggleExpanded={onToggleExpanded}
+                  onUpdateField={onUpdateField}
+                  onAddNestedField={onAddNestedField}
+                  onRemoveField={onRemoveField}
+                />
+              ))}
+            </div>
+          )}
       </div>
     );
   }
@@ -590,14 +640,21 @@ export function SchemaDesigner({
           current = current.fields[pathArray[i]];
         }
 
-        const updatedField = { ...newField };
-
-        // Handle type changes for object fields
+        const updatedField = { ...newField }; // Handle type changes for object fields
         if (newField.type === "object" && !newField.fields) {
           updatedField.fields = [];
           delete updatedField.value;
-        } else if (newField.type !== "object" && newField.fields) {
+        } else if (newField.type === "array" && !newField.fields) {
+          updatedField.fields = [];
+          updatedField.length = updatedField.length || 3; // Default array length
+          delete updatedField.value;
+        } else if (
+          newField.type !== "object" &&
+          newField.type !== "array" &&
+          newField.fields
+        ) {
           delete updatedField.fields;
+          delete updatedField.length;
           if (!updatedField.value) {
             updatedField.value = getDefaultValueForType(newField.type);
           }
@@ -609,7 +666,6 @@ export function SchemaDesigner({
     },
     [pathToArray, getDefaultValueForType]
   );
-
   const addNestedFieldByPath = useCallback(
     (path: string) => {
       setSchema((prev) => {
@@ -621,7 +677,7 @@ export function SchemaDesigner({
           current = current.fields[index];
         }
 
-        if (current.type === "object") {
+        if (current.type === "object" || current.type === "array") {
           if (!current.fields) {
             current.fields = [];
           }

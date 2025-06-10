@@ -23,10 +23,12 @@ export function NestedFieldBuilder({
   depth = 0 
 }: NestedFieldBuilderProps) {
   const [isExpanded, setIsExpanded] = useState(true);
-  
   const addNestedField = () => {
-    if (field.type === 'object') {
-      const newFields = [...(field.fields || []), { key: '', type: 'string' as const }];
+    if (field.type === "object" || field.type === "array") {
+      const newFields = [
+        ...(field.fields || []),
+        { key: "", type: "string" as const },
+      ];
       onUpdate({ ...field, fields: newFields });
     }
   };
@@ -40,7 +42,9 @@ export function NestedFieldBuilder({
 
   const updateNestedField = (index: number, updatedField: SchemaField) => {
     if (field.fields) {
-      const newFields = field.fields.map((f, i) => i === index ? updatedField : f);
+      const newFields = field.fields.map((f, i) =>
+        i === index ? updatedField : f
+      );
       onUpdate({ ...field, fields: newFields });
     }
   };
@@ -48,18 +52,25 @@ export function NestedFieldBuilder({
   const updateFieldKey = (key: string) => {
     onUpdate({ ...field, key });
   };
-
-  const updateFieldType = (type: 'string' | 'number' | 'boolean' | 'object') => {
+  const updateFieldType = (
+    type: "string" | "number" | "boolean" | "object" | "array"
+  ) => {
     const updatedField: SchemaField = { ...field, type };
-    
-    if (type === 'object') {
-      updatedField.fields = updatedField.fields || [{ key: 'id', type: 'number' }];
+
+    if (type === "object" || type === "array") {
+      updatedField.fields = updatedField.fields || [
+        { key: "id", type: "number" },
+      ];
       delete updatedField.value;
+      if (type === "array") {
+        updatedField.length = updatedField.length || 3; // Default array length
+      }
     } else {
       delete updatedField.fields;
+      delete updatedField.length;
       updatedField.value = getDefaultValue(type);
     }
-    
+
     onUpdate(updatedField);
   };
 
@@ -69,10 +80,14 @@ export function NestedFieldBuilder({
 
   const getDefaultValue = (type: string) => {
     switch (type) {
-      case 'string': return 'sample text';
-      case 'number': return 123;
-      case 'boolean': return true;
-      default: return undefined;
+      case "string":
+        return "sample text";
+      case "number":
+        return 123;
+      case "boolean":
+        return true;
+      default:
+        return undefined;
     }
   };
 
@@ -89,7 +104,8 @@ export function NestedFieldBuilder({
       >
         <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
-            {field.type === "object" && (
+            {" "}
+            {(field.type === "object" || field.type === "array") && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -102,13 +118,18 @@ export function NestedFieldBuilder({
                   <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                 )}
               </Button>
-            )}
+            )}{" "}
             <CardTitle className="text-sm text-gray-900 dark:text-white">
               {field.key || "New Field"}
               {field.type === "object" && (
                 <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-2">
                   ({field.fields?.length || 0} nested field
                   {field.fields?.length !== 1 ? "s" : ""})
+                </span>
+              )}
+              {field.type === "array" && (
+                <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-2">
+                  (array of {field.length || 3} items)
                 </span>
               )}
             </CardTitle>
@@ -155,19 +176,25 @@ export function NestedFieldBuilder({
                     className="hover:bg-blue-50 dark:hover:bg-slate-700/80"
                   >
                     Boolean
-                  </SelectItem>
+                  </SelectItem>{" "}
                   <SelectItem
                     value="object"
                     className="hover:bg-blue-50 dark:hover:bg-slate-700/80"
                   >
                     Object
                   </SelectItem>
+                  <SelectItem
+                    value="array"
+                    className="hover:bg-blue-50 dark:hover:bg-slate-700/80"
+                  >
+                    Array
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>{" "}
           {/* Value input for primitive types */}
-          {field.type !== "object" && (
+          {field.type !== "object" && field.type !== "array" && (
             <div>
               <Label className="text-xs text-gray-700 dark:text-gray-300 font-medium">
                 Value
@@ -214,11 +241,33 @@ export function NestedFieldBuilder({
                     </SelectItem>
                   </SelectContent>
                 </Select>
-              )}
+              )}{" "}
+            </div>
+          )}
+          {/* Array length configuration */}
+          {field.type === "array" && (
+            <div>
+              <Label className="text-xs text-gray-700 dark:text-gray-300 font-medium">
+                Array Length (1-100)
+              </Label>
+              <Input
+                type="number"
+                min={1}
+                max={100}
+                value={field.length || 3}
+                onChange={(e) =>
+                  onUpdate({
+                    ...field,
+                    length: Math.min(Math.max(1, Number(e.target.value)), 100),
+                  })
+                }
+                placeholder="Number of items"
+                className="h-8 bg-white/90 dark:bg-slate-700/90 border-gray-200/50 dark:border-slate-600/50 hover:border-purple-300 dark:hover:border-slate-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200"
+              />
             </div>
           )}{" "}
           <div className="flex justify-between items-center">
-            {field.type === "object" && (
+            {(field.type === "object" || field.type === "array") && (
               <Button
                 onClick={addNestedField}
                 size="sm"
@@ -227,7 +276,7 @@ export function NestedFieldBuilder({
               >
                 <Plus className="h-3 w-3 mr-1 text-blue-600 dark:text-blue-400" />
                 <span className="text-blue-700 dark:text-blue-300">
-                  Add Nested Field
+                  Add {field.type === "array" ? "Array Item" : "Nested"} Field
                 </span>
               </Button>
             )}
@@ -243,21 +292,29 @@ export function NestedFieldBuilder({
         </CardContent>
       </Card>{" "}
       {/* Nested fields */}
-      {field.type === "object" && isExpanded && field.fields && (
-        <div className="space-y-3 border-l-2 border-gray-200 dark:border-slate-600 pl-4">
-          {field.fields.map((nestedField, index) => (
-            <NestedFieldBuilder
-              key={index}
-              field={nestedField}
-              onUpdate={(updatedField) =>
-                updateNestedField(index, updatedField)
-              }
-              onRemove={() => removeNestedField(index)}
-              depth={depth + 1}
-            />
-          ))}
-        </div>
-      )}
+      {(field.type === "object" || field.type === "array") &&
+        isExpanded &&
+        field.fields && (
+          <div className="space-y-3 border-l-2 border-gray-200 dark:border-slate-600 pl-4">
+            {field.type === "array" && (
+              <div className="text-xs text-gray-500 dark:text-gray-400 italic mb-2">
+                Array Item Template ({field.length || 3} items will be
+                generated)
+              </div>
+            )}
+            {field.fields.map((nestedField, index) => (
+              <NestedFieldBuilder
+                key={index}
+                field={nestedField}
+                onUpdate={(updatedField) =>
+                  updateNestedField(index, updatedField)
+                }
+                onRemove={() => removeNestedField(index)}
+                depth={depth + 1}
+              />
+            ))}
+          </div>
+        )}
     </div>
   );
 }

@@ -4,7 +4,8 @@ export interface SchemaField {
   key: string;
   type: SmartFieldType;
   value?: string | number | boolean; // For primitive values
-  fields?: SchemaField[]; // For nested objects
+  fields?: SchemaField[]; // For nested objects and array items
+  length?: number; // For array types (max 100)
 }
 
 export interface MockSchema {

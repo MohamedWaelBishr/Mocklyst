@@ -9,6 +9,20 @@ function generateFieldValue(field: SchemaField, index?: number): any {
     });
     return nestedObj;
   }
+  
+  if (field.type === "array" && field.fields) {
+    const arrayLength = Math.min(field.length || 3, 100); // Max 100 items
+    const array = [];
+    for (let i = 0; i < arrayLength; i++) {
+      const item: any = {};
+      field.fields.forEach((nestedField) => {
+        item[nestedField.key] = generateFieldValue(nestedField, i);
+      });
+      array.push(item);
+    }
+    return array;
+  }
+  
   // If there's a custom value that's not empty, use it for primitive types
   if (
     field.value !== undefined &&
