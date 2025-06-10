@@ -9,9 +9,12 @@ function generateFieldValue(field: SchemaField, index?: number): any {
     });
     return nestedObj;
   }
-
-  // If there's a custom value, use it for primitive types
-  if (field.value !== undefined && isPrimitiveType(field.type)) {
+  // If there's a custom value that's not empty, use it for primitive types
+  if (
+    field.value !== undefined &&
+    field.value !== "" &&
+    isPrimitiveType(field.type)
+  ) {
     return field.value;
   }
 
@@ -22,9 +25,10 @@ function generateFieldValue(field: SchemaField, index?: number): any {
 export function generateMockData(schema: MockSchema): any {
   switch (schema.type) {
     case "primitive":
-      // If there's a custom value, use it for primitive types
+      // If there's a custom value that's not empty, use it for primitive types
       if (
         schema.primitiveValue !== undefined &&
+        schema.primitiveValue !== "" &&
         schema.primitiveType &&
         isPrimitiveType(schema.primitiveType)
       ) {

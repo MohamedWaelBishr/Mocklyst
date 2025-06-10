@@ -3,6 +3,7 @@
 import { useState, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -527,6 +528,59 @@ export function SchemaDesigner({
     }
   }, []);
 
+  // Handler for schema type changes
+  const handleSchemaTypeChange = useCallback(
+    (type: "object" | "array" | "primitive") => {
+      setSchema((prev) => {
+        const newSchema: MockSchema = { type };
+
+        if (type === "object" || type === "array") {
+          newSchema.fields =
+            prev.fields && prev.fields.length > 0
+              ? prev.fields
+              : [{ key: "", type: "string", value: "" }];
+
+          if (type === "array") {
+            newSchema.length = prev.length || 3;
+          }
+        } else if (type === "primitive") {
+          newSchema.primitiveType = prev.primitiveType || "string";
+          newSchema.primitiveValue = prev.primitiveValue || "sample value";
+        }
+
+        return newSchema;
+      });
+    },
+    []
+  );
+
+  // Handler for array length changes
+  const handleArrayLengthChange = useCallback((length: number) => {
+    setSchema((prev) => ({
+      ...prev,
+      length: Math.min(Math.max(1, length), 100), // Ensure between 1-100
+    }));
+  }, []);
+  // Handler for primitive type changes
+  const handlePrimitiveTypeChange = useCallback((type: SmartFieldType) => {
+    setSchema((prev) => ({
+      ...prev,
+      primitiveType: type,
+      primitiveValue: "", // Start with empty value, faker will be used in GET request
+    }));
+  }, []);
+
+  // Handler for primitive value changes
+  const handlePrimitiveValueChange = useCallback(
+    (value: string | number | boolean) => {
+      setSchema((prev) => ({
+        ...prev,
+        primitiveValue: value,
+      }));
+    },
+    []
+  );
+
   // Optimized state update functions
   const updateFieldByPath = useCallback(
     (path: string, newField: SchemaField) => {
@@ -659,12 +713,11 @@ export function SchemaDesigner({
       console.error("Failed to copy:", err);
     }
   };
-
   const mockData = generateMockData(schema);
   return (
     <div className="backdrop-blur-sm bg-white/70 dark:bg-slate-900/70 rounded-3xl shadow-xl border border-white/40 dark:border-slate-700/40 p-8 lg:p-12">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-        {/* Schema Designer Section */}{" "}
+        {/* Schema Designer Section */}
         <section aria-label="Schema Designer" className="space-y-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
@@ -683,37 +736,188 @@ export function SchemaDesigner({
           <p className="text-slate-600 dark:text-slate-400 font-medium mb-6">
             Design your mock API response structure with precision
           </p>
+
+          {/* Schema Type Selector */}
+          <div className="space-y-4 mb-6">
+            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Response Type
+            </Label>
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                {
+                  type: "object" as const,
+                  label: "Object",
+                  description: "Key-value structure",
+                },
+                {
+                  type: "array" as const,
+                  label: "Array",
+                  description: "List of items",
+                },
+                {
+                  type: "primitive" as const,
+                  label: "Primitive",
+                  description: "Single value",
+                },
+              ].map(({ type, label, description }) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => handleSchemaTypeChange(type)}
+                  className={`p-4 rounded-lg border-2 text-left transition-all ${
+                    schema.type === type
+                      ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30"
+                      : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                  }`}
+                >
+                  <div className="font-medium text-slate-900 dark:text-slate-100">
+                    {label}
+                  </div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    {description}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Array Length Configuration */}
+          {schema.type === "array" && (
+            <div className="space-y-4 mb-6">
+              <Label
+                htmlFor="array-length"
+                className="text-sm font-medium text-slate-700 dark:text-slate-300"
+              >
+                Array Length (1-100)
+              </Label>
+              <Input
+                id="array-length"
+                type="number"
+                min={1}
+                max={100}
+                value={schema.length || 3}
+                onChange={(e) =>
+                  handleArrayLengthChange(Number(e.target.value))
+                }
+                className="w-32 rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+              />
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Number of items to generate in the array (maximum 100)
+              </p>
+            </div>
+          )}
+
+          {/* Primitive Type Configuration */}
+          {schema.type === "primitive" && (
+            <div className="space-y-4 mb-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Primitive Type
+                  </Label>
+                  <Select
+                    value={schema.primitiveType || "string"}
+                    onValueChange={(type: SmartFieldType) =>
+                      handlePrimitiveTypeChange(type)
+                    }
+                  >
+                    <SelectTrigger className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-60 overflow-y-auto">
+                      {getAvailableFieldTypes().map(({ type, description }) => (
+                        <SelectItem key={type} value={type}>
+                          <div className="flex flex-col">
+                            <span className="capitalize">
+                              {type.replace(/([A-Z])/g, " $1").trim()}
+                            </span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                              {description}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    Value
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      placeholder="Enter value or generate"
+                      value={String(schema.primitiveValue || "")}
+                      onChange={(e) =>
+                        handlePrimitiveValueChange(e.target.value)
+                      }
+                      className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                      aria-label="Generate value"
+                      onClick={() =>
+                        handlePrimitiveValueChange(
+                          generateValueForType(schema.primitiveType || "string")
+                        )
+                      }
+                    >
+                      <Sparkles className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <hr className="border-slate-200 dark:border-slate-700" />
 
-          <form className="space-y-4">
-            <div className="space-y-4">
-              {" "}
-              {/* Fields */}
-              {schema.fields?.map((field, index) => (
-                <RecursiveFieldWrapper
-                  key={index}
-                  field={field}
-                  path={index.toString()}
-                  depth={0}
-                  expandedFields={expandedFields}
-                  onToggleExpanded={toggleExpanded}
-                  onUpdateField={updateFieldByPath}
-                  onAddNestedField={addNestedFieldByPath}
-                  onRemoveField={removeFieldByPath}
-                />
-              ))}
-            </div>{" "}
-            <hr className="border-slate-200 dark:border-slate-700" />
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full rounded-lg border-dashed border-slate-300 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
-              onClick={addField}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Field
-            </Button>
-          </form>
+          {/* Fields Configuration */}
+          {(schema.type === "object" || schema.type === "array") && (
+            <form className="space-y-4 mt-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {schema.type === "array"
+                      ? "Array Item Fields"
+                      : "Object Fields"}
+                  </Label>
+                  {schema.type === "array" && (
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      {schema.length || 3} items will be generated
+                    </span>
+                  )}
+                </div>
+                {/* Fields */}
+                {schema.fields?.map((field, index) => (
+                  <RecursiveFieldWrapper
+                    key={index}
+                    field={field}
+                    path={index.toString()}
+                    depth={0}
+                    expandedFields={expandedFields}
+                    onToggleExpanded={toggleExpanded}
+                    onUpdateField={updateFieldByPath}
+                    onAddNestedField={addNestedFieldByPath}
+                    onRemoveField={removeFieldByPath}
+                  />
+                ))}
+              </div>
+              <hr className="border-slate-200 dark:border-slate-700" />
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full rounded-lg border-dashed border-slate-300 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                onClick={addField}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Field
+              </Button>
+            </form>
+          )}
         </section>
         {/* JSON Preview Section */}{" "}
         <section aria-label="JSON Preview" className="space-y-6">
