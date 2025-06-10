@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { MockSchema, SchemaField } from "@/types";
 import { generateMockData } from "@/lib/mock-generator";
+import Editor from "@monaco-editor/react";
 
 interface SchemaDesignerProps {
   onGenerate: (schema: MockSchema) => void;
@@ -319,6 +320,40 @@ const RecursiveFieldWrapper = memo(
 RecursiveFieldWrapper.displayName = "RecursiveFieldWrapper";
 
 export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
+  // Custom Monaco theme configuration
+  const customTheme = {
+    base: "vs-dark" as const,
+    inherit: true,
+    rules: [
+      { token: "string.value.json", foreground: "22c55e" }, // Green for string values
+      { token: "string.key.json", foreground: "e2e8f0" }, // Light gray for keys
+      { token: "number.json", foreground: "22c55e" }, // Green for numbers
+      { token: "keyword.json", foreground: "22c55e" }, // Green for booleans
+      { token: "delimiter.bracket.json", foreground: "e2e8f0" }, // Light gray for brackets
+      { token: "delimiter.array.json", foreground: "e2e8f0" }, // Light gray for array brackets
+      { token: "delimiter.colon.json", foreground: "e2e8f0" }, // Light gray for colons
+      { token: "delimiter.comma.json", foreground: "e2e8f0" }, // Light gray for commas
+      { token: "string", foreground: "22c55e" }, // Green for all strings
+      { token: "number", foreground: "22c55e" }, // Green for all numbers
+      { token: "key", foreground: "e2e8f0" }, // Light gray for keys
+    ],
+    colors: {
+      "editor.background": "#0f172a", // Very dark slate background to match image
+      "editor.foreground": "#e2e8f0", // Light text
+      "editorLineNumber.foreground": "#64748b", // Muted line numbers
+      "editorLineNumber.activeForeground": "#e2e8f0", // Active line number
+      "editor.selectionBackground": "#334155", // Selection background
+      "editor.lineHighlightBackground": "#1e293b", // Line highlight
+      "editor.inactiveSelectionBackground": "#334155",
+      "scrollbar.shadow": "#0f172a",
+      "scrollbarSlider.background": "#475569",
+      "scrollbarSlider.hoverBackground": "#64748b",
+      "scrollbarSlider.activeBackground": "#94a3b8",
+      "editorWidget.background": "#0f172a",
+      "editorWidget.border": "#475569",
+    },
+  };
+
   const [schema, setSchema] = useState<MockSchema>({
     type: "object",
     fields: [
@@ -554,13 +589,53 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
           </div>
           <p className="text-slate-600 dark:text-slate-400 font-medium mb-6">
             Live preview of your mock response
-          </p>
+          </p>{" "}
           <hr className="border-slate-200 dark:border-slate-700" />
-
           <div className="relative">
-            <pre className="backdrop-blur-sm bg-slate-900/90 dark:bg-slate-950/90 text-green-400 dark:text-green-300 p-6 rounded-xl shadow-lg border border-slate-700/50 dark:border-slate-600/50 overflow-x-auto text-sm leading-relaxed">
-              <code>{JSON.stringify(mockData, null, 2)}</code>
-            </pre>
+            <div className="rounded-xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700">
+              {" "}
+              <Editor
+                height="400px"
+                language="json"
+                theme={"custom-dark"}
+                value={JSON.stringify(mockData, null, 2)}
+                beforeMount={(monaco) => {
+                  // Register the custom theme
+                  monaco.editor.defineTheme("custom-dark", customTheme);
+                }}
+                options={{
+                  readOnly: true,
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  fontSize: 14,
+                  fontFamily: 'Consolas, "Courier New", monospace',
+                  lineNumbers: "on",
+                  glyphMargin: false,
+                  folding: true,
+                  lineDecorationsWidth: 0,
+                  lineNumbersMinChars: 3,
+                  automaticLayout: true,
+                  contextmenu: true,
+                  selectOnLineNumbers: true,
+                  roundedSelection: false,
+                  cursorStyle: "line",
+                  wordWrap: "on",
+                  scrollbar: {
+                    verticalScrollbarSize: 10,
+                    horizontalScrollbarSize: 10,
+                  },
+                  padding: {
+                    top: 16,
+                    bottom: 16,
+                  },
+                }}
+                loading={
+                  <div className="flex items-center justify-center h-96 bg-slate-950">
+                    <div className="text-slate-400">Loading editor...</div>
+                  </div>
+                }
+              />
+            </div>
           </div>
         </section>
       </div>
