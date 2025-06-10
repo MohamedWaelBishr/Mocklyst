@@ -1,0 +1,21 @@
+{
+  "id": "k45jcr",
+  "config": {
+    "type": "object",
+    "fields": [
+      {
+        "key": "first_name",
+        "type": "string",
+        "value": ""
+      },
+      {
+        "key": "",
+        "type": "string",
+        "value": ""
+      }
+    ]
+  },
+  "endpoint": "/api/mock/k45jcr",
+  "createdAt": "2025-06-10T01:12:41.846Z",
+  "expiresAt": "2025-06-17T01:12:41.846Z"
+}

@@ -253,7 +253,7 @@ export default function Home() {
                 className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-3xl border border-white/20 dark:border-slate-700/50 shadow-2xl p-8"
               >
                 <SchemaDesigner
-                  onGenerate={handleGenerate}
+                  onGenerateAction={handleGenerate}
                   isLoading={isLoading}
                 />
               </motion.div>

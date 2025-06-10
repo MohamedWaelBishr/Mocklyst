@@ -1,4 +1,5 @@
 import { MockSchema, SchemaField } from "@/types";
+import { generateValueForType, isPrimitiveType } from "./field-type-detector";
 
 function generateFieldValue(field: SchemaField, index?: number): any {
   if (field.type === "object" && field.fields) {
@@ -9,16 +10,28 @@ function generateFieldValue(field: SchemaField, index?: number): any {
     return nestedObj;
   }
 
-  return generatePrimitiveValue(field.type, field.value, index);
+  // If there's a custom value, use it for primitive types
+  if (field.value !== undefined && isPrimitiveType(field.type)) {
+    return field.value;
+  }
+
+  // Use smart field type generation
+  return generateValueForType(field.type);
 }
 
 export function generateMockData(schema: MockSchema): any {
   switch (schema.type) {
     case "primitive":
-      return generatePrimitiveValue(
-        schema.primitiveType || "string",
-        schema.primitiveValue
-      );
+      // If there's a custom value, use it for primitive types
+      if (
+        schema.primitiveValue !== undefined &&
+        schema.primitiveType &&
+        isPrimitiveType(schema.primitiveType)
+      ) {
+        return schema.primitiveValue;
+      }
+      // Use smart field type generation
+      return generateValueForType(schema.primitiveType || "string");
 
     case "object":
       const obj: any = {};
@@ -43,27 +56,6 @@ export function generateMockData(schema: MockSchema): any {
       }
       return array;
 
-    default:
-      return null;
-  }
-}
-
-function generatePrimitiveValue(
-  type: string,
-  customValue?: any,
-  index?: number
-): any {
-  if (customValue !== undefined) {
-    return customValue;
-  }
-
-  switch (type) {
-    case "string":
-      return `string_${index !== undefined ? index + 1 : "value"}`;
-    case "number":
-      return index !== undefined ? index + 1 : 123;
-    case "boolean":
-      return index !== undefined ? index % 2 === 0 : true;
     default:
       return null;
   }

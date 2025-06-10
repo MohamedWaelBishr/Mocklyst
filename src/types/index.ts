@@ -1,13 +1,15 @@
+import { SmartFieldType } from "@/lib/field-type-detector";
+
 export interface SchemaField {
   key: string;
-  type: "string" | "number" | "boolean" | "object";
+  type: SmartFieldType;
   value?: string | number | boolean; // For primitive values
   fields?: SchemaField[]; // For nested objects
 }
 
 export interface MockSchema {
-  type: 'object' | 'array' | 'primitive';
-  primitiveType?: 'string' | 'number' | 'boolean';
+  type: "object" | "array" | "primitive";
+  primitiveType?: SmartFieldType;
   primitiveValue?: string | number | boolean;
   fields?: SchemaField[];
   length?: number;
@@ -22,8 +24,8 @@ export interface MockEndpoint {
 }
 
 export interface CreateMockRequest {
-  type: 'object' | 'array' | 'primitive';
-  primitiveType?: 'string' | 'number' | 'boolean';
+  type: "object" | "array" | "primitive";
+  primitiveType?: SmartFieldType;
   primitiveValue?: string | number | boolean;
   fields?: SchemaField[];
   length?: number;

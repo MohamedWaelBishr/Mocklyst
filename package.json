@@ -10,6 +10,7 @@
     "cleanup": "node scripts/cleanup.js"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.8.0",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-select": "^2.2.5",

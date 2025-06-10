@@ -19,14 +19,23 @@ import {
   ChevronDown,
   ChevronRight,
   Check,
+  Lightbulb,
+  Sparkles,
 } from "lucide-react";
 import { MockSchema, SchemaField } from "@/types";
 import { generateMockData } from "@/lib/mock-generator";
 import Editor from "@monaco-editor/react";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  detectFieldType,
+  getAvailableFieldTypes,
+  SmartFieldType,
+  FieldSuggestion,
+  generateValueForType,
+} from "@/lib/field-type-detector";
 
 interface SchemaDesignerProps {
-  onGenerate: (schema: MockSchema) => void;
+  onGenerateAction: (schema: MockSchema) => void;
   isLoading?: boolean;
 }
 
@@ -53,16 +62,32 @@ const RecursiveField = memo(
     onAddNestedField,
     onRemoveField,
   }: RecursiveFieldProps) => {
+    const [suggestions, setSuggestions] = useState<FieldSuggestion[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
     const handleKeyChange = useCallback(
       (value: string) => {
         onUpdateField(path, { ...field, key: value });
+
+        // Get smart field type suggestions
+        if (value.trim()) {
+          const fieldSuggestions = detectFieldType(value.trim());
+          setSuggestions(fieldSuggestions);
+          setShowSuggestions(
+            fieldSuggestions.length > 0 && fieldSuggestions[0].confidence > 0.6
+          );
+        } else {
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
       },
       [field, path, onUpdateField]
     );
 
     const handleTypeChange = useCallback(
-      (type: "string" | "number" | "boolean" | "object") => {
+      (type: SmartFieldType) => {
         onUpdateField(path, { ...field, type });
+        setShowSuggestions(false);
       },
       [field, path, onUpdateField]
     );
@@ -85,6 +110,25 @@ const RecursiveField = memo(
     const handleRemoveField = useCallback(() => {
       onRemoveField(path);
     }, [path, onRemoveField]);
+
+    const handleApplySuggestion = useCallback(
+      (suggestion: FieldSuggestion) => {
+        onUpdateField(path, {
+          ...field,
+          type: suggestion.type,
+          value: suggestion.example,
+        });
+        setShowSuggestions(false);
+      },
+      [field, path, onUpdateField]
+    );
+
+    const handleGenerateValue = useCallback(() => {
+      const newValue = generateValueForType(field.type);
+      onUpdateField(path, { ...field, value: newValue });
+    }, [field, path, onUpdateField]);
+
+    const availableTypes = getAvailableFieldTypes();
 
     return (
       <div className="space-y-3">
@@ -113,25 +157,45 @@ const RecursiveField = memo(
               value={field.key || ""}
               onChange={(e) => handleKeyChange(e.target.value)}
               className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-            />
+            />{" "}
             <Select value={field.type} onValueChange={handleTypeChange}>
               <SelectTrigger className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="string">String</SelectItem>
-                <SelectItem value="number">Number</SelectItem>
-                <SelectItem value="boolean">Boolean</SelectItem>
-                <SelectItem value="object">Object</SelectItem>
+              <SelectContent className="max-h-60 overflow-y-auto">
+                {availableTypes.map(({ type, description }) => (
+                  <SelectItem key={type} value={type}>
+                    <div className="flex flex-col">
+                      <span className="capitalize">
+                        {type.replace(/([A-Z])/g, " $1").trim()}
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                        {description}
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
-            </Select>
+            </Select>{" "}
             {field.type !== "object" && (
-              <Input
-                placeholder="Enter value"
-                value={String(field.value || "")}
-                onChange={(e) => handleValueChange(e.target.value)}
-                className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-              />
+              <div className="relative">
+                <Input
+                  placeholder="Enter value or generate"
+                  value={String(field.value || "")}
+                  onChange={(e) => handleValueChange(e.target.value)}
+                  className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                  aria-label="Generate value"
+                  onClick={handleGenerateValue}
+                >
+                  <Sparkles className="h-3 w-3" />
+                </Button>
+              </div>
             )}
           </div>
 
@@ -159,7 +223,52 @@ const RecursiveField = memo(
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
-        </div>{" "}
+        </div>
+
+        {/* Smart Suggestions */}
+        {showSuggestions && suggestions.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                Smart Suggestions
+              </span>
+            </div>
+            <div className="space-y-2">
+              {suggestions.slice(0, 3).map((suggestion, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  className="w-full text-left p-2 rounded border border-blue-200 dark:border-blue-700 bg-white dark:bg-blue-900/20 hover:bg-blue-50 dark:hover:bg-blue-900/40 transition-colors"
+                  onClick={() => handleApplySuggestion(suggestion)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-blue-800 dark:text-blue-200 capitalize">
+                        {suggestion.type.replace(/([A-Z])/g, " $1").trim()}
+                      </div>
+                      <div className="text-xs text-blue-600 dark:text-blue-400">
+                        {suggestion.description}
+                      </div>
+                    </div>
+                    <div className="text-xs text-blue-500 dark:text-blue-400 bg-blue-100 dark:bg-blue-800/50 px-2 py-1 rounded">
+                      {Math.round(suggestion.confidence * 100)}%
+                    </div>
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-1 font-mono bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
+                    Example: {suggestion.example}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {/* Recursive nested fields */}
         {field.type === "object" && isExpanded && field.fields && (
           <div className="space-y-3 ml-6 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
@@ -240,34 +349,55 @@ const RecursiveFieldWrapper = memo(
                 onUpdateField(path, { ...field, key: e.target.value })
               }
               className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-            />
+            />{" "}
             <Select
               value={field.type}
-              onValueChange={(
-                type: "string" | "number" | "boolean" | "object"
-              ) => {
+              onValueChange={(type: SmartFieldType) => {
                 onUpdateField(path, { ...field, type });
               }}
             >
               <SelectTrigger className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="string">String</SelectItem>
-                <SelectItem value="number">Number</SelectItem>
-                <SelectItem value="boolean">Boolean</SelectItem>
-                <SelectItem value="object">Object</SelectItem>
+              <SelectContent className="max-h-60 overflow-y-auto">
+                {getAvailableFieldTypes().map(({ type, description }) => (
+                  <SelectItem key={type} value={type}>
+                    <div className="flex flex-col">
+                      <span className="capitalize">
+                        {type.replace(/([A-Z])/g, " $1").trim()}
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                        {description}
+                      </span>
+                    </div>
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>{" "}
             {field.type !== "object" && (
-              <Input
-                placeholder="Enter value"
-                value={String(field.value || "")}
-                onChange={(e) =>
-                  onUpdateField(path, { ...field, value: e.target.value })
-                }
-                className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-              />
+              <div className="relative">
+                <Input
+                  placeholder="Enter value or generate"
+                  value={String(field.value || "")}
+                  onChange={(e) =>
+                    onUpdateField(path, { ...field, value: e.target.value })
+                  }
+                  className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                  aria-label="Generate value"
+                  onClick={() => {
+                    const newValue = generateValueForType(field.type);
+                    onUpdateField(path, { ...field, value: newValue });
+                  }}
+                >
+                  <Sparkles className="h-3 w-3" />
+                </Button>
+              </div>
             )}
           </div>
           <div className="flex items-center gap-1">
@@ -321,7 +451,10 @@ const RecursiveFieldWrapper = memo(
 
 RecursiveFieldWrapper.displayName = "RecursiveFieldWrapper";
 
-export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
+export function SchemaDesigner({
+  onGenerateAction,
+  isLoading,
+}: SchemaDesignerProps) {
   // Custom Monaco theme configuration
   const customTheme = {
     base: "vs-dark" as const,
@@ -698,7 +831,7 @@ export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
       <div className="mt-12 text-center">
         <Button
           className="px-8 py-4 text-lg font-semibold rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-          onClick={() => onGenerate(schema)}
+          onClick={() => onGenerateAction(schema)}
           disabled={isLoading || !isSchemaValid()}
         >
           <Settings2 className="h-5 w-5 mr-2" />
