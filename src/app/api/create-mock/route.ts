@@ -1,10 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { generateUniqueId } from '@/lib/mock-generator';
-import { CreateMockRequest, MockEndpoint } from '@/types';
-import fs from 'fs';
-import path from 'path';
+"use server";
+import { NextRequest, NextResponse } from "next/server";
+import { generateUniqueId } from "@/lib/mock-generator";
+import { CreateMockRequest, MockEndpoint } from "@/types";
+import fs from "fs";
+import path from "path";
 
-const STORAGE_DIR = path.join(process.cwd(), 'data', 'mocks');
+const STORAGE_DIR = path.join(process.cwd(), "data", "mocks");
 
 // Ensure storage directory exists
 if (!fs.existsSync(STORAGE_DIR)) {
@@ -14,18 +15,21 @@ if (!fs.existsSync(STORAGE_DIR)) {
 export async function POST(request: NextRequest) {
   try {
     const body: CreateMockRequest = await request.json();
-    
+
     // Validate request
     if (!body.type) {
       return NextResponse.json(
-        { error: 'Missing required field: type' },
+        { error: "Missing required field: type" },
         { status: 400 }
       );
     }
 
-    if ((body.type === 'object' || body.type === 'array') && !body.fields?.length) {
+    if (
+      (body.type === "object" || body.type === "array") &&
+      !body.fields?.length
+    ) {
       return NextResponse.json(
-        { error: 'Fields are required for object and array types' },
+        { error: "Fields are required for object and array types" },
         { status: 400 }
       );
     }
@@ -61,9 +65,9 @@ export async function POST(request: NextRequest) {
       expiresAt: expiresAt.toISOString(),
     });
   } catch (error) {
-    console.error('Error creating mock endpoint:', error);
+    console.error("Error creating mock endpoint:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
