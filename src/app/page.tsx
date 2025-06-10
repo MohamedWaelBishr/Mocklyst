@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { SchemaDesigner } from "@/components/schema-designer";
 import { EndpointResult } from "@/components/endpoint-result";
@@ -9,10 +10,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 import { FlipWords } from "@/components/ui/flip-words";
 import { AnimatedButton } from "@/components/ui/animated-button";
-import { Boxes } from "@/components/ui/background-effects";
 import { CardHoverEffect } from "@/components/ui/card-hover-effect";
 import { Spotlight } from "@/components/ui/spotlight";
-import { FloatingParticles } from "@/components/ui/floating-particles";
 import { MockSchema, CreateMockResponse } from "@/types";
 import {
   Zap,
@@ -24,6 +23,27 @@ import {
   Database,
   Globe,
 } from "lucide-react";
+
+// Dynamically import components that use random values to prevent hydration issues
+const Boxes = dynamic(
+  () =>
+    import("@/components/ui/background-effects").then((mod) => ({
+      default: mod.Boxes,
+    })),
+  {
+    ssr: false,
+  }
+);
+
+const FloatingParticles = dynamic(
+  () =>
+    import("@/components/ui/floating-particles").then((mod) => ({
+      default: mod.FloatingParticles,
+    })),
+  {
+    ssr: false,
+  }
+);
 
 export default function Home() {
   const [result, setResult] = useState<CreateMockResponse | null>(null);
