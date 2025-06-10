@@ -1,17 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useCallback, memo } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -19,523 +10,571 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Plus, Eye, Zap, Settings2, Layers, Code, Play } from "lucide-react";
+import {
+  Plus,
+  Copy,
+  Settings2,
+  Code,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import { MockSchema, SchemaField } from "@/types";
 import { generateMockData } from "@/lib/mock-generator";
-import { NestedFieldBuilder } from "@/components/nested-field-builder";
 
 interface SchemaDesignerProps {
   onGenerate: (schema: MockSchema) => void;
   isLoading?: boolean;
 }
 
+interface RecursiveFieldProps {
+  field: SchemaField;
+  path: string;
+  depth: number;
+  isExpanded: boolean;
+  onToggleExpanded: (path: string) => void;
+  onUpdateField: (path: string, field: SchemaField) => void;
+  onAddNestedField: (path: string) => void;
+  onRemoveField: (path: string) => void;
+}
+
+// Memoized RecursiveField component to prevent unnecessary re-renders
+const RecursiveField = memo(
+  ({
+    field,
+    path,
+    depth,
+    isExpanded,
+    onToggleExpanded,
+    onUpdateField,
+    onAddNestedField,
+    onRemoveField,
+  }: RecursiveFieldProps) => {
+    const handleKeyChange = useCallback(
+      (value: string) => {
+        onUpdateField(path, { ...field, key: value });
+      },
+      [field, path, onUpdateField]
+    );
+
+    const handleTypeChange = useCallback(
+      (type: "string" | "number" | "boolean" | "object") => {
+        onUpdateField(path, { ...field, type });
+      },
+      [field, path, onUpdateField]
+    );
+
+    const handleValueChange = useCallback(
+      (value: string) => {
+        onUpdateField(path, { ...field, value });
+      },
+      [field, path, onUpdateField]
+    );
+
+    const handleToggleExpanded = useCallback(() => {
+      onToggleExpanded(path);
+    }, [path, onToggleExpanded]);
+
+    const handleAddNestedField = useCallback(() => {
+      onAddNestedField(path);
+    }, [path, onAddNestedField]);
+
+    const handleRemoveField = useCallback(() => {
+      onRemoveField(path);
+    }, [path, onRemoveField]);
+
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          {field.type === "object" && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
+              aria-label="Toggle object"
+              onClick={handleToggleExpanded}
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+            {" "}
+            <Input
+              placeholder="Field name"
+              value={field.key || ""}
+              onChange={(e) => handleKeyChange(e.target.value)}
+              className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+            />
+            <Select value={field.type} onValueChange={handleTypeChange}>
+              <SelectTrigger className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="string">String</SelectItem>
+                <SelectItem value="number">Number</SelectItem>
+                <SelectItem value="boolean">Boolean</SelectItem>
+                <SelectItem value="object">Object</SelectItem>
+              </SelectContent>
+            </Select>
+            {field.type !== "object" && (
+              <Input
+                placeholder="Enter value"
+                value={String(field.value || "")}
+                onChange={(e) => handleValueChange(e.target.value)}
+                className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+              />
+            )}
+          </div>
+
+          <div className="flex items-center gap-1">
+            {field.type === "object" && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/30"
+                aria-label="Add nested field"
+                onClick={handleAddNestedField}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            )}{" "}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30"
+              aria-label="Remove field"
+              onClick={handleRemoveField}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>{" "}
+        {/* Recursive nested fields */}
+        {field.type === "object" && isExpanded && field.fields && (
+          <div className="space-y-3 ml-6 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
+            {" "}
+            {field.fields.map((nestedField, index) => (
+              <RecursiveField
+                key={`${path}.${index}`}
+                field={nestedField}
+                path={`${path}.${index}`}
+                depth={depth + 1}
+                isExpanded={false} // Will be managed by expandedFields state in parent
+                onToggleExpanded={onToggleExpanded}
+                onUpdateField={onUpdateField}
+                onAddNestedField={onAddNestedField}
+                onRemoveField={onRemoveField}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+
+RecursiveField.displayName = "RecursiveField";
+
+// Wrapper component that handles expanded state for all nested levels
+interface RecursiveFieldWrapperProps {
+  field: SchemaField;
+  path: string;
+  depth: number;
+  expandedFields: Set<string>;
+  onToggleExpanded: (path: string) => void;
+  onUpdateField: (path: string, field: SchemaField) => void;
+  onAddNestedField: (path: string) => void;
+  onRemoveField: (path: string) => void;
+}
+
+const RecursiveFieldWrapper = memo(
+  ({
+    field,
+    path,
+    depth,
+    expandedFields,
+    onToggleExpanded,
+    onUpdateField,
+    onAddNestedField,
+    onRemoveField,
+  }: RecursiveFieldWrapperProps) => {
+    const isExpanded = expandedFields.has(path);
+
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-3">
+          {" "}
+          {field.type === "object" && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
+              aria-label="Toggle object"
+              onClick={() => onToggleExpanded(path)}
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+          <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+            {" "}
+            <Input
+              placeholder="Field name"
+              value={field.key || ""}
+              onChange={(e) =>
+                onUpdateField(path, { ...field, key: e.target.value })
+              }
+              className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+            />
+            <Select
+              value={field.type}
+              onValueChange={(
+                type: "string" | "number" | "boolean" | "object"
+              ) => {
+                onUpdateField(path, { ...field, type });
+              }}
+            >
+              <SelectTrigger className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="string">String</SelectItem>
+                <SelectItem value="number">Number</SelectItem>
+                <SelectItem value="boolean">Boolean</SelectItem>
+                <SelectItem value="object">Object</SelectItem>
+              </SelectContent>
+            </Select>{" "}
+            {field.type !== "object" && (
+              <Input
+                placeholder="Enter value"
+                value={String(field.value || "")}
+                onChange={(e) =>
+                  onUpdateField(path, { ...field, value: e.target.value })
+                }
+                className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+              />
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            {" "}
+            {field.type === "object" && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/30"
+                aria-label="Add nested field"
+                onClick={() => onAddNestedField(path)}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            )}{" "}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/30"
+              aria-label="Remove field"
+              onClick={() => onRemoveField(path)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>{" "}
+        {/* Recursive nested fields */}
+        {field.type === "object" && isExpanded && field.fields && (
+          <div className="space-y-3 ml-6 pl-4 border-l-2 border-slate-200 dark:border-slate-700">
+            {field.fields.map((nestedField, index) => (
+              <RecursiveFieldWrapper
+                key={`${path}.${index}`}
+                field={nestedField}
+                path={`${path}.${index}`}
+                depth={depth + 1}
+                expandedFields={expandedFields}
+                onToggleExpanded={onToggleExpanded}
+                onUpdateField={onUpdateField}
+                onAddNestedField={onAddNestedField}
+                onRemoveField={onRemoveField}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+
+RecursiveFieldWrapper.displayName = "RecursiveFieldWrapper";
+
 export function SchemaDesigner({ onGenerate, isLoading }: SchemaDesignerProps) {
   const [schema, setSchema] = useState<MockSchema>({
     type: "object",
     fields: [
-      { key: "id", type: "number" },
+      { key: "id", type: "number", value: 123 },
       {
-        key: "myobject",
+        key: "myObject",
         type: "object",
         fields: [
-          { key: "id", type: "number" },
-          { key: "name", type: "string" },
+          { key: "id", type: "number", value: 123 },
+          { key: "name", type: "string", value: "string_value" },
         ],
       },
     ],
   });
 
-  const addField = () => {
+  const [expandedFields, setExpandedFields] = useState<Set<string>>(
+    new Set(["1"])
+  );
+
+  // Optimized utility functions
+  const pathToArray = useCallback((path: string): number[] => {
+    return path.split(".").map(Number);
+  }, []);
+
+  const getDefaultValueForType = useCallback((type: string) => {
+    switch (type) {
+      case "string":
+        return "sample text";
+      case "number":
+        return 123;
+      case "boolean":
+        return true;
+      default:
+        return "";
+    }
+  }, []);
+
+  // Optimized state update functions
+  const updateFieldByPath = useCallback(
+    (path: string, newField: SchemaField) => {
+      setSchema((prev) => {
+        const pathArray = pathToArray(path);
+        const newSchema = structuredClone(prev); // More efficient than JSON.parse/stringify
+
+        let current: any = newSchema;
+        for (let i = 0; i < pathArray.length - 1; i++) {
+          current = current.fields[pathArray[i]];
+        }
+
+        const updatedField = { ...newField };
+
+        // Handle type changes for object fields
+        if (newField.type === "object" && !newField.fields) {
+          updatedField.fields = [];
+          delete updatedField.value;
+        } else if (newField.type !== "object" && newField.fields) {
+          delete updatedField.fields;
+          if (!updatedField.value) {
+            updatedField.value = getDefaultValueForType(newField.type);
+          }
+        }
+
+        current.fields[pathArray[pathArray.length - 1]] = updatedField;
+        return newSchema;
+      });
+    },
+    [pathToArray, getDefaultValueForType]
+  );
+
+  const addNestedFieldByPath = useCallback(
+    (path: string) => {
+      setSchema((prev) => {
+        const pathArray = pathToArray(path);
+        const newSchema = structuredClone(prev);
+
+        let current: any = newSchema;
+        for (const index of pathArray) {
+          current = current.fields[index];
+        }
+
+        if (current.type === "object") {
+          if (!current.fields) {
+            current.fields = [];
+          }
+          current.fields.push({ key: "", type: "string", value: "" });
+        }
+
+        return newSchema;
+      });
+    },
+    [pathToArray]
+  );
+
+  const removeFieldByPath = useCallback(
+    (path: string) => {
+      setSchema((prev) => {
+        const pathArray = pathToArray(path);
+        const newSchema = structuredClone(prev);
+
+        if (pathArray.length === 1) {
+          // Removing top-level field
+          newSchema.fields = newSchema.fields?.filter(
+            (_: SchemaField, i: number) => i !== pathArray[0]
+          );
+        } else {
+          // Removing nested field
+          let current: any = newSchema;
+          for (let i = 0; i < pathArray.length - 1; i++) {
+            current = current.fields[pathArray[i]];
+          }
+
+          const lastIndex = pathArray[pathArray.length - 1];
+          current.fields = current.fields?.filter(
+            (_: SchemaField, i: number) => i !== lastIndex
+          );
+        }
+
+        return newSchema;
+      });
+    },
+    [pathToArray]
+  );
+
+  const toggleExpanded = useCallback((path: string) => {
+    setExpandedFields((prev) => {
+      const newExpanded = new Set(prev);
+      if (newExpanded.has(path)) {
+        newExpanded.delete(path);
+      } else {
+        newExpanded.add(path);
+      }
+      return newExpanded;
+    });
+  }, []);
+
+  const addField = useCallback(() => {
     if (schema.type === "object" || schema.type === "array") {
       setSchema((prev) => ({
         ...prev,
-        fields: [...(prev.fields || []), { key: "", type: "string" }],
+        fields: [
+          ...(prev.fields || []),
+          { key: "", type: "string", value: "" },
+        ],
       }));
     }
-  };
-
-  const removeField = (index: number) => {
-    setSchema((prev) => ({
-      ...prev,
-      fields: prev.fields?.filter((_, i) => i !== index),
-    }));
-  };
-
-  const updateField = (index: number, field: SchemaField) => {
-    setSchema((prev) => ({
-      ...prev,
-      fields: prev.fields?.map((f, i) => (i === index ? field : f)),
-    }));
-  };
-
-  const updateSchemaType = (type: "object" | "array" | "primitive") => {
-    if (type === "primitive") {
-      setSchema({
-        type,
-        primitiveType: "string",
-        primitiveValue: "sample text",
-      });
-    } else {
-      setSchema({
-        type,
-        fields: [{ key: "id", type: "number" }],
-        ...(type === "array" && { length: 3 }),
-      });
-    }
-  };
+  }, [schema.type]);
 
   const mockData = generateMockData(schema);
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        duration: 0.3,
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.3 },
-    },
-  };
-
   return (
-    <motion.div
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      className="grid grid-cols-1 xl:grid-cols-3 gap-8"
-    >
-      {/* Schema Designer */}
-      <motion.div variants={itemVariants} className="xl:col-span-2">
-        {" "}
-        <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/20 dark:border-slate-700/50 shadow-2xl hover:shadow-3xl transition-all duration-300">
-          <CardHeader className="pb-6">
-            <CardTitle className="flex items-center gap-3 text-2xl">
-              <motion.div
-                whileHover={{ rotate: 180 }}
-                transition={{ duration: 0.3 }}
-                className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg"
-              >
-                <Settings2 className="h-6 w-6" />
-              </motion.div>
-              <div>
-                <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
-                  Schema Designer
-                </span>
-                <CardDescription className="mt-1 text-base text-gray-600 dark:text-gray-300">
-                  Design your mock API response structure with precision
-                </CardDescription>
-              </div>
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent className="space-y-8">
-            {/* Response Type Section */}
-            <motion.div variants={itemVariants} className="space-y-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Layers className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <Label className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Response Type
-                </Label>
-              </div>
-
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Select
-                  value={schema.type}
-                  onValueChange={(value: "object" | "array" | "primitive") =>
-                    updateSchemaType(value)
-                  }
-                >
-                  {" "}
-                  <SelectTrigger className="h-12 bg-white/90 dark:bg-slate-800/90 border-blue-200/50 dark:border-slate-600/50 hover:border-blue-300 dark:hover:border-slate-500 transition-all duration-200 text-base">
-                    <SelectValue placeholder="Choose response type" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-blue-200/50 dark:border-slate-600/50">
-                    <SelectItem
-                      value="object"
-                      className="text-base hover:bg-blue-50 dark:hover:bg-slate-700/80"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Code className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                        Object
-                      </div>
-                    </SelectItem>
-                    <SelectItem
-                      value="array"
-                      className="text-base hover:bg-blue-50 dark:hover:bg-slate-700/80"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Layers className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        Array
-                      </div>
-                    </SelectItem>
-                    <SelectItem
-                      value="primitive"
-                      className="text-base hover:bg-blue-50 dark:hover:bg-slate-700/80"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Play className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                        Primitive
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </motion.div>
-            </motion.div>
-            {/* Array Length */}
-            <AnimatePresence>
-              {schema.type === "array" && (
-                <motion.div
-                  variants={itemVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                  className="space-y-4"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <Layers className="h-5 w-5 text-green-600 dark:text-green-400" />
-                    <Label className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Array Length
-                    </Label>
-                  </div>
-
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {" "}
-                    <Input
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={schema.length || 1}
-                      onChange={(e) =>
-                        setSchema((prev) => ({
-                          ...prev,
-                          length: parseInt(e.target.value) || 1,
-                        }))
-                      }
-                      className="h-12 bg-white/90 dark:bg-slate-800/90 border-green-200/50 dark:border-slate-600/50 hover:border-green-300 dark:hover:border-slate-500 focus:border-green-500 dark:focus:border-green-400 transition-all duration-200 text-base"
-                      placeholder="Enter array length"
-                    />
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            {/* Primitive Type */}
-            <AnimatePresence>
-              {schema.type === "primitive" && (
-                <motion.div
-                  variants={itemVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                  className="space-y-6"
-                >
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Play className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                      <Label className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Primitive Type
-                      </Label>
-                    </div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <Select
-                        value={schema.primitiveType}
-                        onValueChange={(
-                          value: "string" | "number" | "boolean"
-                        ) =>
-                          setSchema((prev) => ({
-                            ...prev,
-                            primitiveType: value,
-                          }))
-                        }
-                      >
-                        {" "}
-                        <SelectTrigger className="h-12 bg-white/90 dark:bg-slate-800/90 border-purple-200/50 dark:border-slate-600/50 hover:border-purple-300 dark:hover:border-slate-500 transition-all duration-200 text-base">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-purple-200/50 dark:border-slate-600/50">
-                          <SelectItem
-                            value="string"
-                            className="text-base hover:bg-purple-50 dark:hover:bg-slate-700/80"
-                          >
-                            String
-                          </SelectItem>
-                          <SelectItem
-                            value="number"
-                            className="text-base hover:bg-purple-50 dark:hover:bg-slate-700/80"
-                          >
-                            Number
-                          </SelectItem>
-                          <SelectItem
-                            value="boolean"
-                            className="text-base hover:bg-purple-50 dark:hover:bg-slate-700/80"
-                          >
-                            Boolean
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </motion.div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <Label className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Value
-                    </Label>
-
-                    {schema.primitiveType === "string" && (
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {" "}
-                        <Input
-                          value={(schema.primitiveValue as string) || ""}
-                          onChange={(e) =>
-                            setSchema((prev) => ({
-                              ...prev,
-                              primitiveValue: e.target.value,
-                            }))
-                          }
-                          placeholder="Enter string value"
-                          className="h-12 bg-white/90 dark:bg-slate-800/90 border-purple-200/50 dark:border-slate-600/50 hover:border-purple-300 dark:hover:border-slate-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 text-base"
-                        />
-                      </motion.div>
-                    )}
-
-                    {schema.primitiveType === "number" && (
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        {" "}
-                        <Input
-                          type="number"
-                          value={(schema.primitiveValue as number) || 0}
-                          onChange={(e) =>
-                            setSchema((prev) => ({
-                              ...prev,
-                              primitiveValue: parseFloat(e.target.value) || 0,
-                            }))
-                          }
-                          placeholder="Enter number value"
-                          className="h-12 bg-white/90 dark:bg-slate-800/90 border-purple-200/50 dark:border-slate-600/50 hover:border-purple-300 dark:hover:border-slate-500 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 text-base"
-                        />
-                      </motion.div>
-                    )}
-
-                    {schema.primitiveType === "boolean" && (
-                      <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <Select
-                          value={String(schema.primitiveValue)}
-                          onValueChange={(value) =>
-                            setSchema((prev) => ({
-                              ...prev,
-                              primitiveValue: value === "true",
-                            }))
-                          }
-                        >
-                          {" "}
-                          <SelectTrigger className="h-12 bg-white/90 dark:bg-slate-800/90 border-purple-200/50 dark:border-slate-600/50 hover:border-purple-300 dark:hover:border-slate-500 transition-all duration-200 text-base">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border-purple-200/50 dark:border-slate-600/50">
-                            <SelectItem
-                              value="true"
-                              className="hover:bg-purple-50 dark:hover:bg-slate-700/80"
-                            >
-                              true
-                            </SelectItem>
-                            <SelectItem
-                              value="false"
-                              className="hover:bg-purple-50 dark:hover:bg-slate-700/80"
-                            >
-                              false
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </motion.div>
-                    )}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            {/* Object/Array Fields */}
-            <AnimatePresence>
-              {(schema.type === "object" || schema.type === "array") && (
-                <motion.div
-                  variants={itemVariants}
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                  className="space-y-6"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Code className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                      <Label className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Fields
-                      </Label>
-                    </div>
-
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Button
-                        onClick={addField}
-                        size="sm"
-                        className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add Field
-                      </Button>
-                    </motion.div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <AnimatePresence>
-                      {schema.fields?.map((field, index) => (
-                        <motion.div
-                          key={index}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 20 }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <NestedFieldBuilder
-                            field={field}
-                            onUpdate={(updatedField) =>
-                              updateField(index, updatedField)
-                            }
-                            onRemove={() => removeField(index)}
-                          />
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>{" "}
-            <motion.div variants={itemVariants}>
-              <Separator className="bg-gradient-to-r from-transparent via-gray-300 dark:via-slate-600 to-transparent" />
-            </motion.div>
-            <motion.div
-              variants={itemVariants}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+    <div className="backdrop-blur-sm bg-white/70 dark:bg-slate-900/70 rounded-3xl shadow-xl border border-white/40 dark:border-slate-700/40 p-8 lg:p-12">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+        {/* Schema Designer Section */}{" "}
+        <section aria-label="Schema Designer" className="space-y-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+              <Settings2 className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <h3
+              className="text-xl font-bold text-slate-800 dark:text-slate-200"
+              style={{
+                fontFamily:
+                  "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+              }}
             >
-              <Button
-                onClick={() => onGenerate(schema)}
-                className="w-full h-14 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white font-semibold text-lg shadow-2xl hover:shadow-3xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isLoading}
-                size="lg"
-              >
-                {isLoading ? (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className="mr-3"
-                  >
-                    <Settings2 className="h-5 w-5" />
-                  </motion.div>
-                ) : (
-                  <Zap className="h-5 w-5 mr-3" />
-                )}
-                {isLoading ? "Generating..." : "Generate Mock Endpoint"}
-              </Button>
-            </motion.div>
-          </CardContent>
-        </Card>
-      </motion.div>{" "}
-      {/* JSON Preview */}
-      <motion.div variants={itemVariants} className="xl:col-span-1">
-        <Card className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-white/20 dark:border-slate-700/50 shadow-2xl hover:shadow-3xl transition-all duration-300 h-fit sticky top-8">
-          <CardHeader className="pb-6">
-            <CardTitle className="flex items-center gap-3 text-xl">
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                transition={{ duration: 0.3 }}
-                className="p-2 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg"
-              >
-                <Eye className="h-5 w-5" />
-              </motion.div>
-              <div>
-                <span className="bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
-                  JSON Preview
-                </span>
-                <CardDescription className="mt-1 text-gray-600 dark:text-gray-300">
-                  Live preview of your mock response
-                </CardDescription>
+              Schema Designer
+            </h3>
+          </div>
+          <p className="text-slate-600 dark:text-slate-400 font-medium mb-6">
+            Design your mock API response structure with precision
+          </p>
+          <hr className="border-slate-200 dark:border-slate-700" />
+
+          <form className="space-y-4">
+            <div className="space-y-4">
+              {" "}
+              {/* Fields */}
+              {schema.fields?.map((field, index) => (
+                <RecursiveFieldWrapper
+                  key={index}
+                  field={field}
+                  path={index.toString()}
+                  depth={0}
+                  expandedFields={expandedFields}
+                  onToggleExpanded={toggleExpanded}
+                  onUpdateField={updateFieldByPath}
+                  onAddNestedField={addNestedFieldByPath}
+                  onRemoveField={removeFieldByPath}
+                />
+              ))}
+            </div>{" "}
+            <hr className="border-slate-200 dark:border-slate-700" />
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full rounded-lg border-dashed border-slate-300 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+              onClick={addField}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Field
+            </Button>
+          </form>
+        </section>
+        {/* JSON Preview Section */}{" "}
+        <section aria-label="JSON Preview" className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30">
+                <Code className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent className="space-y-6">
-            <motion.div
-              className="flex flex-wrap items-center gap-3"
-              variants={itemVariants}
-            >
-              <Badge
-                variant="secondary"
-                className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-700 px-3 py-1"
+              <h3
+                className="text-xl font-bold text-slate-800 dark:text-slate-200"
+                style={{
+                  fontFamily:
+                    "Inter, -apple-system, BlinkMacSystemFont, sans-serif",
+                }}
               >
-                {schema.type === "array"
-                  ? `Array (${schema.length || 1} items)`
-                  : schema.type === "object"
-                  ? "Object"
-                  : `Primitive (${schema.primitiveType})`}
-              </Badge>
-
-              {(schema.type === "object" || schema.type === "array") && (
-                <Badge
-                  variant="outline"
-                  className="border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 px-3 py-1"
-                >
-                  {schema.fields?.length || 0} field
-                  {(schema.fields?.length || 0) !== 1 ? "s" : ""}
-                </Badge>
-              )}
-            </motion.div>{" "}
-            <motion.div
-              variants={itemVariants}
-              className="bg-gradient-to-br from-slate-50 to-gray-100 dark:from-slate-800/90 dark:to-slate-900/90 rounded-2xl p-6 overflow-auto border border-gray-200/50 dark:border-slate-600/50 shadow-inner max-h-96"
-              whileHover={{ scale: 1.01 }}
-              transition={{ duration: 0.2 }}
+                JSON Preview
+              </h3>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+              aria-label="Copy JSON to clipboard"
+              onClick={() => {
+                navigator.clipboard.writeText(
+                  JSON.stringify(mockData, null, 2)
+                );
+              }}
             >
-              <pre className="text-sm leading-relaxed text-gray-800 dark:text-gray-100 font-mono">
-                {JSON.stringify(mockData, null, 2)}
-              </pre>
-            </motion.div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </motion.div>
+              <Copy className="h-4 w-4" />
+            </Button>{" "}
+          </div>
+          <p className="text-slate-600 dark:text-slate-400 font-medium mb-6">
+            Live preview of your mock response
+          </p>
+          <hr className="border-slate-200 dark:border-slate-700" />
+
+          <div className="relative">
+            <pre className="backdrop-blur-sm bg-slate-900/90 dark:bg-slate-950/90 text-green-400 dark:text-green-300 p-6 rounded-xl shadow-lg border border-slate-700/50 dark:border-slate-600/50 overflow-x-auto text-sm leading-relaxed">
+              <code>{JSON.stringify(mockData, null, 2)}</code>
+            </pre>
+          </div>
+        </section>
+      </div>
+
+      <div className="mt-12 text-center">
+        <Button
+          className="px-8 py-4 text-lg font-semibold rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+          onClick={() => onGenerate(schema)}
+          disabled={isLoading}
+        >
+          <Settings2 className="h-5 w-5 mr-2" />
+          Generate Mock Endpoint
+        </Button>
+      </div>
+    </div>
   );
 }

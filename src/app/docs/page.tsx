@@ -6,7 +6,7 @@ import Link from "next/link";
 
 export default function DocsPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-slate-950 dark:to-slate-900">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Header */}
         <div className="mb-8">
@@ -26,7 +26,7 @@ export default function DocsPage() {
         </div>
         <div className="space-y-8">
           {/* Quick Start */}
-          <Card>
+          <Card className="dark:bg-slate-800/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Zap className="h-5 w-5" />
@@ -48,7 +48,7 @@ export default function DocsPage() {
           </Card>
 
           {/* Features */}
-          <Card>
+          <Card className="dark:bg-slate-800/50">
             <CardHeader>
               <CardTitle>Key Features</CardTitle>
             </CardHeader>
@@ -80,7 +80,7 @@ export default function DocsPage() {
           </Card>
 
           {/* Response Types */}
-          <Card>
+          <Card className="dark:bg-slate-800/50">
             <CardHeader>
               <CardTitle>Response Types</CardTitle>
               <CardDescription>
@@ -95,8 +95,8 @@ export default function DocsPage() {
                 </h3>
                 <p className="text-sm text-muted-foreground mb-2">
                   Returns a single JSON object with your defined fields.
-                </p>
-                <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-xs overflow-x-auto">
+                </p>{" "}
+                <pre className="bg-slate-100 dark:bg-slate-600/50 dark:border dark:border-slate-700 p-3 rounded text-xs overflow-x-auto">
                   {`{
   "id": 1,
   "name": "string_value",
@@ -112,8 +112,8 @@ export default function DocsPage() {
                 <p className="text-sm text-muted-foreground mb-2">
                   Returns an array of objects with your defined length and
                   fields.
-                </p>
-                <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-xs overflow-x-auto">
+                </p>{" "}
+                <pre className="bg-slate-100 dark:bg-slate-600/50 dark:border dark:border-slate-700 p-3 rounded text-xs overflow-x-auto">
                   {`[
   { "id": 1, "name": "string_1" },
   { "id": 2, "name": "string_2" },
@@ -128,8 +128,8 @@ export default function DocsPage() {
                 <h3 className="font-semibold mb-2">Primitive</h3>
                 <p className="text-sm text-muted-foreground mb-2">
                   Returns a single value (string, number, or boolean).
-                </p>
-                <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-xs overflow-x-auto">
+                </p>{" "}
+                <pre className="bg-slate-100 dark:bg-slate-600/50 dark:border dark:border-slate-700 p-3 rounded text-xs overflow-x-auto">
                   {`"Hello World"`}
                 </pre>
               </div>
@@ -137,7 +137,7 @@ export default function DocsPage() {
           </Card>
 
           {/* API Usage */}
-          <Card>
+          <Card className="dark:bg-slate-800/50">
             <CardHeader>
               <CardTitle>API Usage Examples</CardTitle>
               <CardDescription>
@@ -146,15 +146,15 @@ export default function DocsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <h3 className="font-semibold mb-2">cURL</h3>
-                <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-sm overflow-x-auto">
+                <h3 className="font-semibold mb-2">cURL</h3>{" "}
+                <pre className="bg-slate-100 dark:bg-slate-600/50 dark:border dark:border-slate-700 p-3 rounded text-sm overflow-x-auto">
                   {`curl https://mocklyst.com/api/mock/abc123`}
                 </pre>
               </div>
 
               <div>
-                <h3 className="font-semibold mb-2">JavaScript Fetch</h3>
-                <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-sm overflow-x-auto">
+                <h3 className="font-semibold mb-2">JavaScript Fetch</h3>{" "}
+                <pre className="bg-slate-100 dark:bg-slate-600/50 dark:border dark:border-slate-700 p-3 rounded text-sm overflow-x-auto">
                   {`fetch('https://mocklyst.com/api/mock/abc123')
   .then(response => response.json())
   .then(data => console.log(data))
@@ -163,8 +163,8 @@ export default function DocsPage() {
               </div>
 
               <div>
-                <h3 className="font-semibold mb-2">Axios</h3>
-                <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-sm overflow-x-auto">
+                <h3 className="font-semibold mb-2">Axios</h3>{" "}
+                <pre className="bg-slate-100 dark:bg-slate-600/50 dark:border dark:border-slate-700 p-3 rounded text-sm overflow-x-auto">
                   {`import axios from 'axios';
 
 const data = await axios.get('https://mocklyst.com/api/mock/abc123');
@@ -173,8 +173,8 @@ console.log(data.data);`}
               </div>
 
               <div>
-                <h3 className="font-semibold mb-2">React Hook</h3>
-                <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-sm overflow-x-auto">
+                <h3 className="font-semibold mb-2">React Hook</h3>{" "}
+                <pre className="bg-slate-100 dark:bg-slate-600/50 dark:border dark:border-slate-700 p-3 rounded text-sm overflow-x-auto">
                   {`import { useState, useEffect } from 'react';
 
 function useData() {
@@ -198,14 +198,14 @@ function useData() {
           </Card>
 
           {/* Limitations */}
-          <Card>
+          <Card className="dark:bg-slate-800/50">
             <CardHeader>
               <CardTitle>Limitations & Guidelines</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="grid gap-3">
                 <div className="flex items-start gap-2">
-                  <Badge variant="outline" className="mt-0.5">
+                  <Badge variant="outline" className="mt-0.5 dark:bg-slate-700">
                     Time
                   </Badge>
                   <span className="text-sm">
@@ -213,7 +213,7 @@ function useData() {
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Badge variant="outline" className="mt-0.5">
+                  <Badge variant="outline" className="mt-0.5 dark:bg-slate-700">
                     Method
                   </Badge>
                   <span className="text-sm">
@@ -221,7 +221,7 @@ function useData() {
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Badge variant="outline" className="mt-0.5">
+                  <Badge variant="outline" className="mt-0.5 dark:bg-slate-700">
                     Size
                   </Badge>
                   <span className="text-sm">
@@ -229,7 +229,7 @@ function useData() {
                   </span>
                 </div>
                 <div className="flex items-start gap-2">
-                  <Badge variant="outline" className="mt-0.5">
+                  <Badge variant="outline" className="mt-0.5 dark:bg-slate-700">
                     Rate
                   </Badge>
                   <span className="text-sm">
@@ -241,7 +241,7 @@ function useData() {
           </Card>
 
           {/* FAQ */}
-          <Card>
+          <Card className="dark:bg-slate-800/50">
             <CardHeader>
               <CardTitle>Frequently Asked Questions</CardTitle>
             </CardHeader>
@@ -280,7 +280,7 @@ function useData() {
           </Card>
 
           {/* Endpoint Management */}
-          <Card>
+          <Card className="dark:bg-slate-800/50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Trash2 className="h-5 w-5" />
@@ -357,10 +357,11 @@ function useData() {
                 <h3 className="font-semibold mb-2">Deletion Examples</h3>
                 <div className="space-y-4">
                   <div>
+                    {" "}
                     <h4 className="text-sm font-medium mb-2">
                       Direct Browser Access:
                     </h4>
-                    <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-sm overflow-x-auto">
+                    <pre className="bg-slate-100 dark:bg-slate-600/50 dark:border dark:border-slate-700 p-3 rounded text-sm overflow-x-auto">
                       {`# Visit this URL in your browser for endpoint abc123
 https://mocklyst.com/mock/abc123/delete`}
                     </pre>
@@ -370,7 +371,7 @@ https://mocklyst.com/mock/abc123/delete`}
                     <h4 className="text-sm font-medium mb-2">
                       API Deletion (DELETE method):
                     </h4>
-                    <pre className="bg-slate-100 dark:bg-slate-900 p-3 rounded text-sm overflow-x-auto">
+                    <pre className="bg-slate-100 dark:bg-slate-600/50 dark:border dark:border-slate-700 p-3 rounded text-sm overflow-x-auto">
                       {`# Delete via API call
 curl -X DELETE https://mocklyst.com/api/mock/abc123
 
