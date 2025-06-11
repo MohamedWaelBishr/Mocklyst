@@ -7,12 +7,16 @@ import { SchemaDesigner } from "@/components/schema-designer";
 import { EndpointResult } from "@/components/endpoint-result";
 import { OnboardingTour, useOnboarding } from "@/components/onboarding-tour";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UserNav } from "@/components/auth/UserNav";
+
 import { TextGenerateEffect } from "@/components/ui/text-generate-effect";
 import { FlipWords } from "@/components/ui/flip-words";
 import { AnimatedButton } from "@/components/ui/animated-button";
 import { CardHoverEffect } from "@/components/ui/card-hover-effect";
 import { Spotlight } from "@/components/ui/spotlight";
 import { MockSchema, CreateMockResponse } from "@/types";
+import { useIsAuthenticated, useAuthUser } from "@/lib/stores/auth-store";
+import { supabase } from "@/lib/supabase";
 import {
   Zap,
   Clock,
@@ -22,6 +26,8 @@ import {
   Code2,
   Database,
   Globe,
+  User,
+  Bookmark,
 } from "lucide-react";
 
 // Dynamically import components that use random values to prevent hydration issues
@@ -48,6 +54,8 @@ const FloatingParticles = dynamic(
 export default function Home() {
   const [result, setResult] = useState<CreateMockResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const isAuthenticated = useIsAuthenticated();
+  const user = useAuthUser();
   const {
     showOnboarding,
     hasSeenOnboarding,
@@ -55,15 +63,35 @@ export default function Home() {
     skipOnboarding,
     resetOnboarding,
   } = useOnboarding();
-
   const handleGenerate = async (schema: MockSchema) => {
     setIsLoading(true);
     try {
+      // Debug: Log client-side authentication state
+      console.log("🔍 Client ~ User authenticated:", isAuthenticated);
+      console.log("🔍 Client ~ User object:", user);
+      console.log("🔍 Client ~ User ID:", user?.id); // Get the current session token for authentication
+      const authHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+
+      if (user?.id) {
+        // Get the current session to send the access token
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          authHeaders["Authorization"] = `Bearer ${session.access_token}`;
+          console.log(
+            "🔍 Client ~ Sending auth token:",
+            !!session.access_token
+          );
+        }
+      }
+
       const response = await fetch("/api/create-mock", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: authHeaders,
+        credentials: "include", // Include cookies for authentication
         body: JSON.stringify(schema),
       });
 
@@ -117,13 +145,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
-      {/* Theme Toggle - Fixed Position */}
+      {" "}
+      {/* Navigation - Fixed Position */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.3 }}
-        className="fixed top-6 right-6 z-50"
+        className="fixed top-6 right-6 z-50 flex items-center space-x-4"
       >
+        <UserNav />
         <ThemeToggle />
       </motion.div>{" "}
       {/* Animated Background Elements */}
@@ -220,29 +250,49 @@ export default function Home() {
               className="mt-2 text-lg text-gray-500 dark:text-gray-400"
             >
               <FlipWords
-                words={[
-                  "No login required",
-                  "Auto-expires in 7 days",
-                  "Zero configuration",
-                  "Instant setup",
-                ]}
+                words={
+                  isAuthenticated
+                    ? [
+                        "Your endpoints, saved forever",
+                        "Personal dashboard access",
+                        "Enhanced analytics",
+                        "Premium features",
+                      ]
+                    : [
+                        "No login required",
+                        "Auto-expires in 7 days",
+                        "Zero configuration",
+                        "Instant setup",
+                      ]
+                }
                 duration={2500}
                 className="text-lg text-blue-600 dark:text-blue-400 font-medium"
               />
               <span className="mx-2">•</span>
-              <span>Built for developers</span>
+              <span>
+                {isAuthenticated
+                  ? `Welcome back, ${user?.email?.split("@")[0]}!`
+                  : "Built for developers"}
+              </span>
             </motion.div>
-          </div>
+          </div>{" "}
           {/* Feature Pills */}
           <motion.div
             variants={itemVariants}
             className="flex flex-wrap items-center justify-center gap-4 mt-8"
           >
-            {[
-              { icon: Zap, text: "Instant Setup", color: "yellow" },
-              { icon: Shield, text: "Secure & Private", color: "green" },
-              { icon: Clock, text: "Auto-Cleanup", color: "blue" },
-            ].map((feature) => (
+            {(isAuthenticated
+              ? [
+                  { icon: Bookmark, text: "Saved Endpoints", color: "purple" },
+                  { icon: Shield, text: "Enhanced Security", color: "green" },
+                  { icon: Database, text: "Persistent Storage", color: "blue" },
+                ]
+              : [
+                  { icon: Zap, text: "Instant Setup", color: "yellow" },
+                  { icon: Shield, text: "Secure & Private", color: "green" },
+                  { icon: Clock, text: "Auto-Cleanup", color: "blue" },
+                ]
+            ).map((feature) => (
               <motion.div
                 key={feature.text}
                 variants={featureVariants}
@@ -275,9 +325,157 @@ export default function Home() {
                 <ArrowRight className="h-3 w-3 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
               </AnimatedButton>
             </motion.div>
-          )}
+          )}{" "}
         </motion.div>
+        {/* Authentication-specific section */}
+        {!isAuthenticated && !result && (
+          <motion.div
+            variants={itemVariants}
+            className="mb-16 max-w-4xl mx-auto"
+          >
+            <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-800/50 dark:via-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-8 border border-blue-200/30 dark:border-slate-700/50 backdrop-blur-sm">
+              <div className="text-center space-y-4">
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 border border-blue-200/50 dark:border-blue-700/50"
+                >
+                  <User className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                    Want to save your endpoints forever?
+                  </span>
+                </motion.div>
 
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Sign up for enhanced features
+                </h3>
+
+                <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                  Create an account to save your endpoints permanently, access
+                  them from anywhere, and get detailed analytics on your API
+                  usage.
+                </p>
+
+                <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <AnimatedButton
+                      variant="default"
+                      size="lg"
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                      onClick={() => (window.location.href = "/auth/signup")}
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Sign Up Free
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </AnimatedButton>
+                  </motion.div>
+
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <AnimatedButton
+                      variant="outline"
+                      size="lg"
+                      className="border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      onClick={() => (window.location.href = "/auth/signin")}
+                    >
+                      Already have an account? Sign In
+                    </AnimatedButton>
+                  </motion.div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 text-sm">
+                  {[
+                    {
+                      icon: Bookmark,
+                      title: "Permanent Storage",
+                      desc: "Your endpoints never expire",
+                    },
+                    {
+                      icon: Database,
+                      title: "Personal Dashboard",
+                      desc: "Manage all your APIs in one place",
+                    },
+                    {
+                      icon: Shield,
+                      title: "Enhanced Security",
+                      desc: "Private endpoints with access control",
+                    },
+                  ].map((benefit) => (
+                    <motion.div
+                      key={benefit.title}
+                      whileHover={{ y: -2 }}
+                      className="flex flex-col items-center text-center p-4 rounded-lg bg-white/50 dark:bg-slate-800/30 border border-white/30 dark:border-slate-700/30"
+                    >
+                      <benefit.icon className="w-6 h-6 text-blue-600 dark:text-blue-400 mb-2" />
+                      <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                        {benefit.title}
+                      </h4>
+                      <p className="text-gray-600 dark:text-gray-400">
+                        {benefit.desc}
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+        {/* Welcome back section for authenticated users */}
+        {isAuthenticated && !result && (
+          <motion.div
+            variants={itemVariants}
+            className="mb-16 max-w-4xl mx-auto"
+          >
+            <div className="bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 rounded-2xl p-8 border border-green-200/30 dark:border-green-700/50 backdrop-blur-sm">
+              <div className="text-center space-y-4">
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 border border-green-200/50 dark:border-green-700/50"
+                >
+                  <Shield className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                    Premium Features Active
+                  </span>
+                </motion.div>
+
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  Welcome back, {user?.email?.split("@")[0]}! 👋
+                </h3>
+
+                <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                  Your endpoints are automatically saved and will never expire.
+                  Access your dashboard to manage all your APIs in one place.
+                </p>
+
+                <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <AnimatedButton
+                      variant="default"
+                      size="lg"
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
+                      onClick={() => (window.location.href = "/dashboard")}
+                    >
+                      <Database className="w-4 h-4 mr-2" />
+                      View Dashboard
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </AnimatedButton>
+                  </motion.div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
         {/* Main Content Area */}
         <motion.div variants={itemVariants} className="max-w-7xl mx-auto">
           <AnimatePresence mode="wait">
@@ -313,37 +511,61 @@ export default function Home() {
               </motion.div>
             )}
           </AnimatePresence>
-        </motion.div>
-
+        </motion.div>{" "}
         {/* Features Grid */}
         {!result && (
           <motion.div
             variants={itemVariants}
             className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
           >
-            {[
-              {
-                icon: Code2,
-                title: "Developer Friendly",
-                description:
-                  "RESTful endpoints with proper JSON responses and CORS support",
-                color: "blue",
-              },
-              {
-                icon: Database,
-                title: "Rich Data Types",
-                description:
-                  "Support for objects, arrays, primitives, and nested structures",
-                color: "purple",
-              },
-              {
-                icon: Globe,
-                title: "Instant Access",
-                description:
-                  "Use your endpoints immediately from any application or service",
-                color: "green",
-              },
-            ].map((feature) => (
+            {(isAuthenticated
+              ? [
+                  {
+                    icon: Database,
+                    title: "Permanent Storage",
+                    description:
+                      "Your endpoints are saved forever and accessible from your personal dashboard",
+                    color: "purple",
+                  },
+                  {
+                    icon: Shield,
+                    title: "Enhanced Security",
+                    description:
+                      "Private endpoints with user authentication and access control",
+                    color: "green",
+                  },
+                  {
+                    icon: Bookmark,
+                    title: "Advanced Analytics",
+                    description:
+                      "Detailed usage statistics and performance metrics for your APIs",
+                    color: "blue",
+                  },
+                ]
+              : [
+                  {
+                    icon: Code2,
+                    title: "Developer Friendly",
+                    description:
+                      "RESTful endpoints with proper JSON responses and CORS support",
+                    color: "blue",
+                  },
+                  {
+                    icon: Database,
+                    title: "Rich Data Types",
+                    description:
+                      "Support for objects, arrays, primitives, and nested structures",
+                    color: "purple",
+                  },
+                  {
+                    icon: Globe,
+                    title: "Instant Access",
+                    description:
+                      "Use your endpoints immediately from any application or service",
+                    color: "green",
+                  },
+                ]
+            ).map((feature) => (
               <CardHoverEffect key={feature.title} className="p-6">
                 <div
                   className={`w-12 h-12 rounded-xl bg-${feature.color}-100 dark:bg-${feature.color}-900/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
@@ -362,7 +584,6 @@ export default function Home() {
             ))}
           </motion.div>
         )}
-
         {/* Footer */}
         <motion.footer
           variants={itemVariants}

@@ -4,26 +4,41 @@ import { Button } from "./button";
 import { MovingBorder } from "./moving-border";
 import { cn } from "@/lib/utils";
 
-interface AnimatedButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface AnimatedButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
   size?: "default" | "sm" | "lg" | "icon";
   movingBorder?: boolean;
   borderClassName?: string;
   duration?: number;
+  isLoading?: boolean;
 }
 
-export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButtonProps>(
-  ({ 
-    children, 
-    className, 
-    movingBorder = false, 
-    borderClassName = "",
-    duration = 3000,
-    variant = "default",
-    size = "default",
-    ...props 
-  }, ref) => {
+export const AnimatedButton = React.forwardRef<
+  HTMLButtonElement,
+  AnimatedButtonProps
+>(
+  (
+    {
+      children,
+      className,
+      movingBorder = false,
+      borderClassName = "",
+      duration = 3000,
+      variant = "default",
+      size = "default",
+      isLoading,
+      ...props
+    },
+    ref
+  ) => {
     if (movingBorder) {
       return (
         <MovingBorder
@@ -43,7 +58,11 @@ export const AnimatedButton = React.forwardRef<HTMLButtonElement, AnimatedButton
             )}
             {...props}
           >
-            {children}
+            {isLoading ? (
+              <span className="animate-pulse">Loading...</span>
+            ) : (
+              children
+            )}
           </Button>
         </MovingBorder>
       );
