@@ -97,12 +97,18 @@ export function EndpointCard({ endpoint, index, onDelete }: EndpointCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
     >
-      <Card className={`shadow-lg border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm transition-all duration-200 hover:shadow-md ${isExpired ? 'opacity-75' : ''}`}>
+      <Card
+        className={`shadow-lg border-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm transition-all duration-200 hover:shadow-md ${
+          isExpired ? "opacity-75" : ""
+        }`}
+      >
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg flex items-center space-x-2">
               <Code className="w-4 h-4" />
-              <span className="truncate">Endpoint #{endpoint.id.slice(-8)}</span>
+              <span className="truncate">
+                Endpoint #{endpoint.id.slice(-8)}
+              </span>
             </CardTitle>
             <Badge variant={isExpired ? "destructive" : "default"}>
               {isExpired ? "Expired" : "Active"}
@@ -111,7 +117,9 @@ export function EndpointCard({ endpoint, index, onDelete }: EndpointCardProps) {
           <CardDescription className="flex items-center space-x-4 text-sm">
             <span className="flex items-center space-x-1">
               <Calendar className="w-3 h-3" />
-              <span>Created {new Date(endpoint.created_at).toLocaleDateString()}</span>
+              <span>
+                Created {new Date(endpoint.created_at).toLocaleDateString()}
+              </span>
             </span>
             {!isExpired && (
               <span className="flex items-center space-x-1">
@@ -121,7 +129,7 @@ export function EndpointCard({ endpoint, index, onDelete }: EndpointCardProps) {
             )}
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {/* Endpoint URL */}
           <div>
@@ -141,7 +149,8 @@ export function EndpointCard({ endpoint, index, onDelete }: EndpointCardProps) {
                 <Copy className="w-3 h-3" />
               </Button>
             </div>
-          </div>          {/* Schema Preview */}
+          </div>{" "}
+          {/* Schema Preview */}
           {endpoint.config && (
             <div>
               <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -184,14 +193,126 @@ export function EndpointCard({ endpoint, index, onDelete }: EndpointCardProps) {
                     },
                   }}
                   loading={
-                    <div className="flex items-center justify-center h-[120px] bg-slate-950">
-                      <div className="text-slate-400 text-xs">Loading...</div>
+                    <div className="w-full relative flex items-center justify-center h-96 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-xl overflow-hidden">
+                      {/* Animated background gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/20 to-transparent animate-pulse" />
+                      {/* Main loading content */}
+                      <div className="relative z-10 flex flex-col items-center justify-center space-y-6">
+                        {/* Animated code icon with pulse effect */}
+                        <div className="relative">
+                          <div className="absolute inset-0 rounded-full bg-indigo-500/20 animate-ping" />
+                          <div className="relative p-4 rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/20 backdrop-blur-sm border border-indigo-500/30">
+                            <Code className="h-8 w-8 text-indigo-400 animate-pulse" />
+                          </div>
+                        </div>
+
+                        {/* Loading text with typewriter effect */}
+                        <div className="flex flex-col items-center space-y-3">
+                          <h3 className="text-lg font-semibold text-slate-200 animate-pulse">
+                            Initializing Editor
+                          </h3>
+                          <div className="flex items-center space-x-1">
+                            <span className="text-sm text-slate-400">
+                              Preparing your workspace
+                            </span>
+                            <div className="flex space-x-1">
+                              <div className="w-1 h-1 bg-indigo-400 rounded-full animate-pulse delay-0" />
+                              <div className="w-1 h-1 bg-indigo-400 rounded-full animate-pulse delay-100" />
+                              <div className="w-1 h-1 bg-indigo-400 rounded-full animate-pulse delay-200" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Animated progress indicators */}
+                        <div className="flex space-x-2">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <div
+                              key={i}
+                              className="w-2 h-2 bg-indigo-500/40 rounded-full animate-pulse"
+                              style={{
+                                animationDelay: `${i * 150}ms`,
+                                animationDuration: "1.5s",
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>{" "}
+                      {/* Floating particles with fixed positions to avoid hydration mismatch */}
+                      <div className="absolute inset-0 overflow-hidden">
+                        {Array.from({ length: 8 }).map((_, i) => {
+                          // Use deterministic positioning based on index to avoid hydration mismatch
+                          const positions = [
+                            {
+                              left: "15%",
+                              top: "20%",
+                              delay: "0s",
+                              duration: "3s",
+                            },
+                            {
+                              left: "85%",
+                              top: "10%",
+                              delay: "0.5s",
+                              duration: "2.5s",
+                            },
+                            {
+                              left: "25%",
+                              top: "80%",
+                              delay: "1s",
+                              duration: "3.5s",
+                            },
+                            {
+                              left: "75%",
+                              top: "65%",
+                              delay: "1.5s",
+                              duration: "2s",
+                            },
+                            {
+                              left: "45%",
+                              top: "30%",
+                              delay: "0.8s",
+                              duration: "2.8s",
+                            },
+                            {
+                              left: "65%",
+                              top: "90%",
+                              delay: "0.3s",
+                              duration: "3.2s",
+                            },
+                            {
+                              left: "35%",
+                              top: "50%",
+                              delay: "1.2s",
+                              duration: "2.3s",
+                            },
+                            {
+                              left: "55%",
+                              top: "15%",
+                              delay: "0.7s",
+                              duration: "3.7s",
+                            },
+                          ];
+                          const pos = positions[i];
+                          return (
+                            <div
+                              key={i}
+                              className="absolute w-1 h-1 bg-indigo-400/30 rounded-full animate-ping"
+                              style={{
+                                left: pos.left,
+                                top: pos.top,
+                                animationDelay: pos.delay,
+                                animationDuration: pos.duration,
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
                     </div>
                   }
                 />
               </div>
             </div>
-          )}{/* Actions */}
+          )}
+          {/* Actions */}
           <div className="flex space-x-2 pt-2">
             <Button
               variant="outline"
@@ -228,8 +349,9 @@ export function EndpointCard({ endpoint, index, onDelete }: EndpointCardProps) {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Endpoint</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete this endpoint? This action cannot be undone.
-                    The endpoint will immediately stop responding to requests.
+                    Are you sure you want to delete this endpoint? This action
+                    cannot be undone. The endpoint will immediately stop
+                    responding to requests.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -248,5 +370,5 @@ export function EndpointCard({ endpoint, index, onDelete }: EndpointCardProps) {
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }

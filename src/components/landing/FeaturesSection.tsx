@@ -56,7 +56,9 @@ export function FeaturesSection() {
 
   return (
     <section id="features" className="py-24 bg-white dark:bg-slate-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">        <motion.div
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {" "}
+        <motion.div
           ref={headerRef}
           variants={fadeInUpVariants}
           initial="hidden"
@@ -67,18 +69,20 @@ export function FeaturesSection() {
             <Sparkles className="h-4 w-4" />
             <span>Features</span>
           </div>
-          
+
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-white mb-6">
             Everything you need for
             <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               rapid API prototyping
             </span>
           </h2>
-          
+
           <p className="max-w-3xl mx-auto text-lg text-slate-600 dark:text-slate-300">
-            Designed for developers who need fast, reliable mock APIs without the hassle of setup or maintenance.
+            Designed for developers who need fast, reliable mock APIs without
+            the hassle of setup or maintenance.
           </p>
-        </motion.div>        <motion.div
+        </motion.div>{" "}
+        <motion.div
           ref={gridRef}
           variants={staggerContainerVariants}
           initial="hidden"
@@ -113,7 +117,7 @@ export function FeaturesSection() {
                         </span>
                       )}
                     </div>
-                    
+
                     <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                       {feature.description}
                     </p>
@@ -126,19 +130,19 @@ export function FeaturesSection() {
             </motion.div>
           ))}
         </motion.div>
-
-        {/* Additional Benefits */}        <motion.div
+        {/* Additional Benefits */}{" "}
+        <motion.div
           ref={benefitsRef}
           variants={fadeInUpVariants}
           initial="hidden"
           animate={benefitsInView ? "visible" : "hidden"}
           className="mt-20 text-center"
         >
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 rounded-2xl p-8 border border-blue-100 dark:border-blue-800/30">
+          <div className="bg-purple-200/30 dark:from-blue-950/30 dark:to-purple-950/30 rounded-2xl p-8 border border-blue-100 dark:border-blue-800/30">
             <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
               Why developers choose Mocklyst
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
               <div className="flex items-start gap-3">
                 <CheckCircle className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
