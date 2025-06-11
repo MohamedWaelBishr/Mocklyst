@@ -6,7 +6,19 @@ import { supabaseAdmin } from "@/lib/supabase";
 
 export async function POST(request: NextRequest) {
   try {
-    const body: CreateMockRequest = await request.json();
+    const requestBody = await request.json();
+    const { schema, userId: requestUserId } = requestBody;
+
+    // Validate that schema exists
+    if (!schema) {
+      return NextResponse.json(
+        { error: "Missing required field: schema" },
+        { status: 400 }
+      );
+    }
+
+    // Extract schema properties for validation
+    const body: CreateMockRequest = schema;
 
     // Check for Authorization header first
     const authHeader = request.headers.get("authorization");
@@ -107,10 +119,8 @@ export async function POST(request: NextRequest) {
     const id = generateUniqueId();
     const endpoint = `/api/mock/${id}`;
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
-
-    // Create mock endpoint data with proper user association
-    const userId = user?.id || null;
+    const expiresAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days    // Create mock endpoint data with proper user association
+    const userId = user?.id || requestUserId || null;
     const mockEndpointData = {
       id,
       config: {
