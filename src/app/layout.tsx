@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { PerformanceWrapper } from "@/components/PerformanceWrapper";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -37,14 +38,16 @@ export default function RootLayout({
       >
         <ThemeProvider defaultTheme="system">
           <AuthProvider>
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-1 pt-16">
-                <ErrorBoundary>{children}</ErrorBoundary>
-              </main>
-              <Footer />
-            </div>
-            <Toaster />
+            <PerformanceWrapper>
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-1 pt-16">
+                  <ErrorBoundary>{children}</ErrorBoundary>
+                </main>
+                <Footer />
+              </div>
+              <Toaster />
+            </PerformanceWrapper>
           </AuthProvider>
         </ThemeProvider>
       </body>

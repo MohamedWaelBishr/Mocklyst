@@ -27,6 +27,13 @@ import {
 } from "lucide-react";
 import { MockSchema, SchemaField } from "@/types";
 import { generateMockData } from "@/lib/mock-generator";
+import {
+  updateSchemaFieldByPath,
+  addNestedFieldByPath,
+  removeFieldByPath,
+  getDefaultValueForType,
+} from "@/lib/utils/schema-updates";
+import { useDebouncedCallback } from "use-debounce";
 import Editor from "@monaco-editor/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -53,7 +60,7 @@ interface RecursiveFieldProps {
   onRemoveField: (path: string) => void;
 }
 
-// Memoized RecursiveField component to prevent unnecessary re-renders
+// Memoized RecursiveField component with optimized comparison
 const RecursiveField = memo(
   ({
     field,
@@ -311,8 +318,22 @@ const RecursiveField = memo(
                 />
               ))}
             </div>
-          )}
+          )}{" "}
       </div>
+    );
+  },
+  // Custom comparison function for better performance
+  (prevProps, nextProps) => {
+    return (
+      prevProps.field.key === nextProps.field.key &&
+      prevProps.field.type === nextProps.field.type &&
+      prevProps.field.value === nextProps.field.value &&
+      prevProps.field.length === nextProps.field.length &&
+      prevProps.path === nextProps.path &&
+      prevProps.isExpanded === nextProps.isExpanded &&
+      prevProps.depth === nextProps.depth &&
+      JSON.stringify(prevProps.field.fields) ===
+        JSON.stringify(nextProps.field.fields)
     );
   }
 );
@@ -626,99 +647,54 @@ export function SchemaDesigner({
       }));
     },
     []
-  );
-
-  // Optimized state update functions
+  ); // Optimized field update function with debouncing
   const updateFieldByPath = useCallback(
     (path: string, newField: SchemaField) => {
-      setSchema((prev) => {
-        const pathArray = pathToArray(path);
-        const newSchema = structuredClone(prev); // More efficient than JSON.parse/stringify
+      setSchema((prev) =>
+        updateSchemaFieldByPath(prev, path, () => {
+          const updatedField = { ...newField };
 
-        let current: any = newSchema;
-        for (let i = 0; i < pathArray.length - 1; i++) {
-          current = current.fields[pathArray[i]];
-        }
-
-        const updatedField = { ...newField }; // Handle type changes for object fields
-        if (newField.type === "object" && !newField.fields) {
-          updatedField.fields = [];
-          delete updatedField.value;
-        } else if (newField.type === "array" && !newField.fields) {
-          updatedField.fields = [];
-          updatedField.length = updatedField.length || 3; // Default array length
-          delete updatedField.value;
-        } else if (
-          newField.type !== "object" &&
-          newField.type !== "array" &&
-          newField.fields
-        ) {
-          delete updatedField.fields;
-          delete updatedField.length;
-          if (!updatedField.value) {
-            updatedField.value = getDefaultValueForType(newField.type);
-          }
-        }
-
-        current.fields[pathArray[pathArray.length - 1]] = updatedField;
-        return newSchema;
-      });
-    },
-    [pathToArray, getDefaultValueForType]
-  );
-  const addNestedFieldByPath = useCallback(
-    (path: string) => {
-      setSchema((prev) => {
-        const pathArray = pathToArray(path);
-        const newSchema = structuredClone(prev);
-
-        let current: any = newSchema;
-        for (const index of pathArray) {
-          current = current.fields[index];
-        }
-
-        if (current.type === "object" || current.type === "array") {
-          if (!current.fields) {
-            current.fields = [];
-          }
-          current.fields.push({ key: "", type: "string", value: "" });
-        }
-
-        return newSchema;
-      });
-    },
-    [pathToArray]
-  );
-
-  const removeFieldByPath = useCallback(
-    (path: string) => {
-      setSchema((prev) => {
-        const pathArray = pathToArray(path);
-        const newSchema = structuredClone(prev);
-
-        if (pathArray.length === 1) {
-          // Removing top-level field
-          newSchema.fields = newSchema.fields?.filter(
-            (_: SchemaField, i: number) => i !== pathArray[0]
-          );
-        } else {
-          // Removing nested field
-          let current: any = newSchema;
-          for (let i = 0; i < pathArray.length - 1; i++) {
-            current = current.fields[pathArray[i]];
+          // Handle type changes for object fields
+          if (newField.type === "object" && !newField.fields) {
+            updatedField.fields = [];
+            delete updatedField.value;
+          } else if (newField.type === "array" && !newField.fields) {
+            updatedField.fields = [];
+            updatedField.length = updatedField.length || 3;
+            delete updatedField.value;
+          } else if (
+            newField.type !== "object" &&
+            newField.type !== "array" &&
+            newField.fields
+          ) {
+            delete updatedField.fields;
+            delete updatedField.length;
+            if (!updatedField.value) {
+              updatedField.value = getDefaultValueForType(newField.type);
+            }
           }
 
-          const lastIndex = pathArray[pathArray.length - 1];
-          current.fields = current.fields?.filter(
-            (_: SchemaField, i: number) => i !== lastIndex
-          );
-        }
-
-        return newSchema;
-      });
+          return updatedField;
+        })
+      );
     },
-    [pathToArray]
+    [getDefaultValueForType]
   );
+
+  // Debounced version for immediate UI feedback
+  const debouncedUpdateField = useDebouncedCallback(
+    (path: string, field: SchemaField) => {
+      updateFieldByPath(path, field);
+    },
+    150 // 150ms debounce
+  );
+  const addNestedField = useCallback((path: string) => {
+    setSchema((prev) => addNestedFieldByPath(prev, path));
+  }, []);
+
+  const removeField = useCallback((path: string) => {
+    setSchema((prev) => removeFieldByPath(prev, path));
+  }, []);
 
   const toggleExpanded = useCallback((path: string) => {
     setExpandedFields((prev) => {
@@ -943,7 +919,7 @@ export function SchemaDesigner({
                       {schema.length || 3} items will be generated
                     </span>
                   )}
-                </div>
+                </div>{" "}
                 {/* Fields */}
                 {schema.fields?.map((field, index) => (
                   <RecursiveFieldWrapper
@@ -954,8 +930,8 @@ export function SchemaDesigner({
                     expandedFields={expandedFields}
                     onToggleExpanded={toggleExpanded}
                     onUpdateField={updateFieldByPath}
-                    onAddNestedField={addNestedFieldByPath}
-                    onRemoveField={removeFieldByPath}
+                    onAddNestedField={addNestedField}
+                    onRemoveField={removeField}
                   />
                 ))}
               </div>

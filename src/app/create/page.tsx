@@ -31,13 +31,19 @@ export default function CreatePage() {
     const isAuthenticated = useIsAuthenticated();
   const user = useAuthUser();
   const { showOnboarding, completeOnboarding } = useOnboarding();
-
   const handleSchemaSubmit = async (schema: MockSchema) => {
     setIsLoading(true);
     setError(null);
-    setResult(null);
 
     try {
+      // Show immediate feedback with proper typing
+      const optimisticResult: CreateMockResponse = {
+        id: "generating...",
+        endpoint: "Generating mock endpoint...",
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      };
+      setResult(optimisticResult);
+
       const response = await fetch("/api/create-mock", {
         method: "POST",
         headers: {
@@ -59,7 +65,8 @@ export default function CreatePage() {
 
       // Track the creation in Supabase for authenticated users
       if (isAuthenticated && user?.id) {
-        try {          await supabase.from("mock_endpoints").insert({
+        try {
+          await supabase.from("mock_endpoints").insert({
             id: data.id,
             user_id: user.id,
             name: "Mock Endpoint", // Use a default name since MockSchema doesn't have a name property
@@ -75,7 +82,9 @@ export default function CreatePage() {
       }
     } catch (err) {
       console.error("Error creating mock:", err);
-      setError(err instanceof Error ? err.message : "Failed to create mock endpoint");
+      setError(
+        err instanceof Error ? err.message : "Failed to create mock endpoint"
+      );
     } finally {
       setIsLoading(false);
     }
