@@ -1,15 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Zap } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { UserNav } from '@/components/auth/UserNav';
-import { useIsAuthenticated, useAuthLoading } from '@/lib/stores/auth-store';
-import { useScrollNavigation, landingPageSections } from '@/hooks/useScrollNavigation';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X, Zap } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { UserNav } from "@/components/auth/UserNav";
+import { useIsAuthenticated, useAuthLoading } from "@/lib/stores/auth-store";
+import {
+  useScrollNavigation,
+  landingPageSections,
+} from "@/hooks/useScrollNavigation";
 
 interface NavigationItem {
   name: string;
@@ -25,9 +28,9 @@ export function Header() {
   const isAuthenticated = useIsAuthenticated();
   const authLoading = useAuthLoading();
   const pathname = usePathname();
-  
+
   // Use scroll navigation hook only on the landing page
-  const isLandingPage = pathname === '/';
+  const isLandingPage = pathname === "/";
   const { activeSection, scrollToSection } = useScrollNavigation(
     isLandingPage ? landingPageSections : []
   );
@@ -38,75 +41,77 @@ export function Header() {
       setScrolled(window.scrollY > 20);
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
   // Navigation items for unauthenticated users
   const publicNavigation: NavigationItem[] = [
-    { 
-      name: 'Features', 
-      href: '#features',
+    {
+      name: "Features",
+      href: "#features",
       isScrollTarget: true,
       onClick: () => {
         if (isLandingPage) {
-          scrollToSection('features');
+          scrollToSection("features");
         } else {
-          window.location.href = '/#features';
+          window.location.href = "/#features";
         }
         setIsOpen(false);
-      }
+      },
     },
-    { 
-      name: 'How It Works', 
-      href: '#how-it-works',
+    {
+      name: "How It Works",
+      href: "#how-it-works",
       isScrollTarget: true,
       onClick: () => {
         if (isLandingPage) {
-          scrollToSection('how-it-works');
+          scrollToSection("how-it-works");
         } else {
-          window.location.href = '/#how-it-works';
+          window.location.href = "/#how-it-works";
         }
         setIsOpen(false);
-      }
+      },
     },
-    { name: 'Demo', href: '/create' },
-    { name: 'Docs', href: '/docs' },
+    { name: "Demo", href: "/create" },
+    { name: "Docs", href: "/docs" },
   ];
 
   // Navigation items for authenticated users
   const authenticatedNavigation: NavigationItem[] = [
-    { 
-      name: 'Features', 
-      href: '#features',
+    {
+      name: "Features",
+      href: "#features",
       isScrollTarget: true,
       onClick: () => {
         if (isLandingPage) {
-          scrollToSection('features');
+          scrollToSection("features");
         } else {
-          window.location.href = '/#features';
+          window.location.href = "/#features";
         }
         setIsOpen(false);
-      }
+      },
     },
-    { 
-      name: 'How It Works', 
-      href: '#how-it-works',
+    {
+      name: "How It Works",
+      href: "#how-it-works",
       isScrollTarget: true,
       onClick: () => {
         if (isLandingPage) {
-          scrollToSection('how-it-works');
+          scrollToSection("how-it-works");
         } else {
-          window.location.href = '/#how-it-works';
+          window.location.href = "/#how-it-works";
         }
         setIsOpen(false);
-      }
+      },
     },
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Create Mock', href: '/create' },
-    { name: 'Docs', href: '/docs' },
+    { name: "Dashboard", href: "/dashboard" },
+    { name: "Create Mock", href: "/create" },
+    { name: "Docs", href: "/docs" },
   ];
 
-  const navigation = isAuthenticated ? authenticatedNavigation : publicNavigation;
+  const navigation = isAuthenticated
+    ? authenticatedNavigation
+    : publicNavigation;
 
   const handleNavClick = (item: NavigationItem) => {
     if (item.onClick) {
@@ -123,8 +128,8 @@ export function Header() {
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/20 dark:border-slate-700/20 shadow-lg'
-          : 'bg-transparent'
+          ? "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/20 dark:border-slate-700/20 shadow-lg"
+          : "bg-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -147,12 +152,16 @@ export function Header() {
                 Mocklyst
               </span>
             </Link>
-          </motion.div>          {/* Desktop Navigation */}
+          </motion.div>
+
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navigation.map((item, index) => {
-              const isActive = isLandingPage && item.isScrollTarget && 
-                             activeSection === item.href.replace('#', '');
-              
+              const isActive =
+                isLandingPage &&
+                item.isScrollTarget &&
+                activeSection === item.href.replace("#", "");
+
               return (
                 <motion.div
                   key={item.name}
@@ -165,8 +174,8 @@ export function Header() {
                       onClick={item.onClick}
                       className={`transition-colors duration-200 font-medium relative ${
                         isActive
-                          ? 'text-purple-600 dark:text-purple-400'
-                          : 'text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400'
+                          ? "text-purple-600 dark:text-purple-400"
+                          : "text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400"
                       }`}
                     >
                       {item.name}
@@ -175,7 +184,11 @@ export function Header() {
                           layoutId="activeNavItem"
                           className="absolute -bottom-1 left-0 right-0 h-0.5 bg-purple-600 dark:bg-purple-400"
                           initial={false}
-                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 380,
+                            damping: 30,
+                          }}
                         />
                       )}
                     </button>
@@ -183,8 +196,8 @@ export function Header() {
                     <Link
                       href={item.href}
                       className="text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 font-medium"
-                      target={item.isExternal ? '_blank' : undefined}
-                      rel={item.isExternal ? 'noopener noreferrer' : undefined}
+                      target={item.isExternal ? "_blank" : undefined}
+                      rel={item.isExternal ? "noopener noreferrer" : undefined}
                     >
                       {item.name}
                     </Link>
@@ -193,7 +206,6 @@ export function Header() {
               );
             })}
           </nav>
-
           {/* Right side items */}
           <div className="flex items-center space-x-4">
             {/* Theme Toggle */}
@@ -218,7 +230,11 @@ export function Header() {
                     <Button variant="ghost" size="sm" asChild>
                       <Link href="/auth/signin">Sign In</Link>
                     </Button>
-                    <Button size="sm" asChild className='bg-gradient-to-r from-purple-600 to-purple-600'>
+                    <Button
+                      size="sm"
+                      asChild
+                      className="bg-gradient-to-r from-purple-600 to-purple-600"
+                    >
                       <Link href="/auth/signup">Sign Up</Link>
                     </Button>
                   </div>
@@ -275,15 +291,18 @@ export function Header() {
           {isOpen && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
-              className="md:hidden border-t border-slate-200/20 dark:border-slate-700/20"
-            >              <div className="px-2 pt-4 pb-6 space-y-3">
+              className="mt-2 rounded-2xl bg-white border border-slate-200 dark:bg-slate-800 md:hidden border-t  dark:border-slate-700/20 shadow-lg backdrop-blur-md"
+            >
+              <div className="px-2 pt-4 pb-6 space-y-3">
                 {navigation.map((item, index) => {
-                  const isActive = isLandingPage && item.isScrollTarget && 
-                                 activeSection === item.href.replace('#', '');
-                  
+                  const isActive =
+                    isLandingPage &&
+                    item.isScrollTarget &&
+                    activeSection === item.href.replace("#", "");
+
                   return (
                     <motion.div
                       key={item.name}
@@ -295,10 +314,10 @@ export function Header() {
                       {item.onClick ? (
                         <button
                           onClick={() => handleNavClick(item)}
-                          className={`block w-full text-left px-3 py-2 rounded-md transition-colors duration-200 font-medium ${
+                          className={`block w-full text-center px-3 py-2 rounded-md transition-colors duration-200 font-medium ${
                             isActive
-                              ? 'text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20'
-                              : 'text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                              ? "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20"
+                              : "text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-50 dark:hover:bg-slate-800"
                           }`}
                         >
                           {item.name}
@@ -307,9 +326,11 @@ export function Header() {
                         <Link
                           href={item.href}
                           onClick={() => handleNavClick(item)}
-                          className="block px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md transition-colors duration-200 font-medium"
-                          target={item.isExternal ? '_blank' : undefined}
-                          rel={item.isExternal ? 'noopener noreferrer' : undefined}
+                          className="block w-full text-center px-3 py-2 text-slate-700 dark:text-slate-300 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md transition-colors duration-200 font-medium"
+                          target={item.isExternal ? "_blank" : undefined}
+                          rel={
+                            item.isExternal ? "noopener noreferrer" : undefined
+                          }
                         >
                           {item.name}
                         </Link>
@@ -328,13 +349,28 @@ export function Header() {
                   >
                     {!isAuthenticated ? (
                       <div className="space-y-2">
-                        <Button variant="ghost" size="sm" className="w-full justify-start" asChild>
-                          <Link href="/auth/signin" onClick={() => setIsOpen(false)}>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                          asChild
+                        >
+                          <Link
+                            href="/auth/signin"
+                            onClick={() => setIsOpen(false)}
+                          >
                             Sign In
                           </Link>
                         </Button>
-                        <Button size="sm" className="w-full" asChild>
-                          <Link href="/auth/signup" onClick={() => setIsOpen(false)}>
+                        <Button
+                          size="sm"
+                          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                          asChild
+                        >
+                          <Link
+                            href="/auth/signup"
+                            onClick={() => setIsOpen(false)}
+                          >
                             Sign Up
                           </Link>
                         </Button>
