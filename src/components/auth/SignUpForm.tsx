@@ -60,14 +60,19 @@ export function SignUpForm() {
             >
               <User className="w-6 h-6 text-white" />
             </motion.div>
-            <CardTitle className="text-2xl font-bold">Create your account</CardTitle>
+            <CardTitle className="text-2xl font-bold">
+              Create your account
+            </CardTitle>
             <CardDescription>
               Enter your details to get started with Mocky
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="email"
@@ -152,7 +157,9 @@ export function SignUpForm() {
                             variant="ghost"
                             size="sm"
                             className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            onClick={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
                             disabled={loading}
                           >
                             {showConfirmPassword ? (
@@ -170,11 +177,13 @@ export function SignUpForm() {
 
                 <AnimatedButton
                   type="submit"
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600"
                   disabled={loading}
                   isLoading={loading}
                 >
-                  {loading ? "Creating account..." : (
+                  {loading ? (
+                    "Creating account..."
+                  ) : (
                     <>
                       Create Account
                       <ArrowRight className="ml-2 h-4 w-4" />
@@ -187,8 +196,8 @@ export function SignUpForm() {
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
                 Already have an account?{" "}
-                <Link 
-                  href="/auth/signin" 
+                <Link
+                  href="/auth/signin"
                   className="font-medium text-primary hover:underline"
                 >
                   Sign in
@@ -199,5 +208,5 @@ export function SignUpForm() {
         </Card>
       </motion.div>
     </div>
-  )
+  );
 }

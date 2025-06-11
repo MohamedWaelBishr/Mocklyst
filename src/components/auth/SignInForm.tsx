@@ -63,22 +63,25 @@ export function SignInForm() {
               <LogIn className="w-6 h-6 text-white" />
             </motion.div>
             <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
-            <CardDescription>
-              Sign in to your Mocky account
-            </CardDescription>
+            <CardDescription>Sign in to your Mocky account</CardDescription>
             {message && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-md"
               >
-                <p className="text-sm text-blue-700 dark:text-blue-300">{message}</p>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  {message}
+                </p>
               </motion.div>
             )}
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="email"
@@ -142,8 +145,8 @@ export function SignInForm() {
                 />
 
                 <div className="flex justify-end">
-                  <Link 
-                    href="/auth/reset-password" 
+                  <Link
+                    href="/auth/reset-password"
                     className="text-sm text-primary hover:underline"
                   >
                     Forgot your password?
@@ -152,11 +155,13 @@ export function SignInForm() {
 
                 <AnimatedButton
                   type="submit"
-                  className="w-full"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600"
                   disabled={loading}
                   isLoading={loading}
                 >
-                  {loading ? "Signing in..." : (
+                  {loading ? (
+                    "Signing in..."
+                  ) : (
                     <>
                       Sign In
                       <ArrowRight className="ml-2 h-4 w-4" />
@@ -169,8 +174,8 @@ export function SignInForm() {
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
                 Don&apos;t have an account?{" "}
-                <Link 
-                  href="/auth/signup" 
+                <Link
+                  href="/auth/signup"
                   className="font-medium text-primary hover:underline"
                 >
                   Sign up
@@ -181,5 +186,5 @@ export function SignInForm() {
         </Card>
       </motion.div>
     </div>
-  )
+  );
 }
