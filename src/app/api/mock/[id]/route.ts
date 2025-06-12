@@ -9,11 +9,18 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-
     if (!id) {
       return NextResponse.json(
         { error: "Missing endpoint ID" },
         { status: 400 }
+      );
+    }
+
+    // Check if admin client is available
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: "Database configuration error" },
+        { status: 500 }
       );
     }
 
@@ -84,6 +91,14 @@ export async function DELETE(
       return NextResponse.json(
         { error: "Missing endpoint ID" },
         { status: 400 }
+      );
+    }
+
+    // Check if admin client is available
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: "Database configuration error" },
+        { status: 500 }
       );
     }
 
