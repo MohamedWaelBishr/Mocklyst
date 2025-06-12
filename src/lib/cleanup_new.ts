@@ -2,6 +2,11 @@ import { supabaseAdmin } from './supabase';
 
 export async function cleanupExpiredEndpoints() {
   try {
+    // Check if admin client is available
+    if (!supabaseAdmin) {
+      throw new Error('Database configuration error: supabaseAdmin is not available');
+    }
+
     // Delete expired endpoints from Supabase
     const { error, count } = await supabaseAdmin
       .from('mock_endpoints')

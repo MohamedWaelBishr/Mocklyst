@@ -2,6 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/components/auth/AuthProvider";
+import { Header } from "@/components/layout/Header";
+import { Footer } from "@/components/layout/Footer";
+import { PerformanceWrapper } from "@/components/PerformanceWrapper";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,7 +21,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Mocklyst - Instant API Mocking Tool",
-  description: "Create instant, temporary mock API endpoints in seconds. No login required, auto-expires in 7 days.",
+  description:
+    "Create instant, temporary mock API endpoints in seconds. No login required, auto-expires in 7 days.",
 };
 
 export default function RootLayout({
@@ -31,7 +37,18 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <ThemeProvider defaultTheme="system">
-          <ErrorBoundary>{children}</ErrorBoundary>
+          <AuthProvider>
+            <PerformanceWrapper>
+              <div className="flex flex-col min-h-screen">
+                <Header />
+                <main className="flex-1 pt-16">
+                  <ErrorBoundary>{children}</ErrorBoundary>
+                </main>
+                <Footer />
+              </div>
+              <Toaster />
+            </PerformanceWrapper>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

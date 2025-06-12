@@ -2,19 +2,28 @@ import { supabaseAdmin } from './supabase';
 
 export async function cleanupExpiredEndpoints() {
   try {
+    // Check if admin client is available
+    if (!supabaseAdmin) {
+      throw new Error(
+        "Database configuration error: supabaseAdmin is not available"
+      );
+    }
+
     // Delete expired endpoints from Supabase
     const { error, count } = await supabaseAdmin
-      .from('mock_endpoints')
+      .from("mock_endpoints")
       .delete()
-      .lt('expires_at', new Date().toISOString());
+      .lt("expires_at", new Date().toISOString());
 
     if (error) {
-      console.error('Error cleaning up expired endpoints:', error);
+      console.error("Error cleaning up expired endpoints:", error);
       throw error;
     }
 
     const cleanedCount = count || 0;
-    console.log(`Cleanup completed. Removed ${cleanedCount} expired endpoints.`);
+    console.log(
+      `Cleanup completed. Removed ${cleanedCount} expired endpoints.`
+    );
     return cleanedCount;
   } catch (error) {
     console.error('Cleanup error:', error);
