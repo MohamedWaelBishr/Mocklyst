@@ -1,11 +1,12 @@
 import { Suspense } from "react"
-import { PasswordResetForm } from "@/components/auth/PasswordResetForm"
-import { AnimatedLoader } from "@/components/ui/animated-loader"
+
+import { AnimatedLoader } from "@/components/ui/animated-loader";
+import { PasswordResetConfirmForm } from "@/components/auth/PasswordResetConfirmForm";
 
 export default function ResetPasswordPage() {
   return (
     <Suspense fallback={<AnimatedLoader />}>
-      <PasswordResetForm />
+      <PasswordResetConfirmForm />
     </Suspense>
-  )
+  );
 }

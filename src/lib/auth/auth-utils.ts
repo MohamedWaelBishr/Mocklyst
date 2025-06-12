@@ -103,6 +103,7 @@ export const authUtils = {
       redirectTo: `${window.location.origin}/auth/reset-password`
     })
 
+
     if (error) {
       throw new Error(getAuthErrorMessage(error.message))
     }
@@ -113,6 +114,8 @@ export const authUtils = {
     const { error } = await supabase.auth.updateUser({
       password
     })
+
+        console.log("🚀 ~ resetPassword ~ error:", error);
 
     if (error) {
       throw new Error(getAuthErrorMessage(error.message))
