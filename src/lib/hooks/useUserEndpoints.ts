@@ -5,12 +5,13 @@ import { supabaseTyped } from '@/lib/supabase'
 import { useAuthUser } from '@/lib/stores/auth-store'
 
 export interface UserEndpoint {
-  id: string
-  config: any
-  endpoint: string
-  created_at: string
-  expires_at: string
-  user_id: string | null
+  id: string;
+  config: any;
+  endpoint: string;
+  created_at: string;
+  expires_at: string;
+  user_id: string | null;
+  hits: number;
 }
 
 interface UseUserEndpointsReturn {

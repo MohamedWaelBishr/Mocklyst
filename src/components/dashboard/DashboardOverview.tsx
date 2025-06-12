@@ -32,25 +32,38 @@ export function DashboardOverview({ endpoints, isLoading = false }: DashboardOve
     { name: 'Sun', value: 58 }
   ]
 
-  const mockActivities = generateMockActivities(15)
-  // Calculate KPI metrics - using static values to avoid hydration mismatches
-  const activeEndpoints = endpoints.filter(e => new Date(e.expires_at) > new Date()).length
-  const totalRequests = 8432 // Static value to avoid hydration mismatch
-  const avgResponseTime = 127 // Static value to avoid hydration mismatch
-  const uptimePercentage = 99.8
+  const mockActivities = generateMockActivities(15); // Calculate KPI metrics from actual endpoint data
+  const activeEndpoints = endpoints.filter(
+    (e) => new Date(e.expires_at) > new Date()
+  ).length;
+  const totalRequests = endpoints.reduce(
+    (sum, endpoint) => sum + (endpoint.hits || 0),
+    0
+  );
+  const avgResponseTime = 127; // Keep static for now - would need response time tracking
+  const uptimePercentage = 99.8; // Keep static for now - would need uptime monitoring
+
+  // Calculate trends (simplified - would need historical data for real trends)
+  const endpointsGrowth =
+    endpoints.length > 0
+      ? Math.min(Math.round((activeEndpoints / endpoints.length) * 100), 100)
+      : 0;
+  const requestsGrowth =
+    totalRequests > 0 ? Math.min(Math.round(totalRequests / 100), 50) : 0;
 
   return (
     <div className="space-y-6">
       {/* KPI Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {" "}
         <KPICard
           title="Active Endpoints"
           value={isLoading ? "..." : activeEndpoints}
           icon={Database}
           trend={{
-            value: 12,
-            label: "from last month",
-            isPositive: true
+            value: endpointsGrowth,
+            label: "endpoint activity",
+            isPositive: endpointsGrowth > 0,
           }}
           isLoading={isLoading}
         />
@@ -59,9 +72,9 @@ export function DashboardOverview({ endpoints, isLoading = false }: DashboardOve
           value={isLoading ? "..." : totalRequests.toLocaleString()}
           icon={Activity}
           trend={{
-            value: 8.2,
-            label: "from yesterday",
-            isPositive: true
+            value: requestsGrowth,
+            label: "total hits tracked",
+            isPositive: requestsGrowth > 0,
           }}
           isLoading={isLoading}
         />
@@ -72,7 +85,7 @@ export function DashboardOverview({ endpoints, isLoading = false }: DashboardOve
           trend={{
             value: 5.3,
             label: "improvement",
-            isPositive: true
+            isPositive: true,
           }}
           isLoading={isLoading}
         />
@@ -85,11 +98,8 @@ export function DashboardOverview({ endpoints, isLoading = false }: DashboardOve
         />
       </div>
 
- {/* Endpoint Monitoring Table */}
-      <EndpointTable 
-        endpoints={endpoints}
-        isLoading={isLoading}
-      />
+      {/* Endpoint Monitoring Table */}
+      <EndpointTable endpoints={endpoints} isLoading={isLoading} />
 
       {/* Charts and Activity Row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -106,13 +116,8 @@ export function DashboardOverview({ endpoints, isLoading = false }: DashboardOve
         </div>
 
         {/* Activity Feed */}
-        <ActivityFeed 
-          activities={mockActivities}
-          isLoading={isLoading}
-        />
+        <ActivityFeed activities={mockActivities} isLoading={isLoading} />
       </div>
-
-     
     </div>
-  )
+  );
 }

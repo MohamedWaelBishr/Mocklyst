@@ -7,20 +7,41 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { UserEndpoint } from "@/lib/hooks/useUserEndpoints"
-import { ExternalLink, Copy, Calendar, Clock, Code, Trash2 } from "lucide-react"
-import { toast } from "sonner"
-import Editor from "@monaco-editor/react"
+import {
+  ExternalLink,
+  Copy,
+  Calendar,
+  Clock,
+  Code,
+  Trash2,
+  TrendingUp,
+} from "lucide-react";
+import { toast } from "sonner";
+import Editor from "@monaco-editor/react";
 
 interface EndpointCardProps {
-  endpoint: UserEndpoint
-  index: number
-  onDelete?: () => void
+  endpoint: UserEndpoint;
+  index: number;
+  onDelete?: () => void;
 }
 
 export function EndpointCard({ endpoint, index, onDelete }: EndpointCardProps) {
-  const [isDeleting, setIsDeleting] = useState(false)
-  const isExpired = new Date(endpoint.expires_at) < new Date()
-  const expiresIn = Math.ceil((new Date(endpoint.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+  const [isDeleting, setIsDeleting] = useState(false);
+  const isExpired = new Date(endpoint.expires_at) < new Date();
+  const expiresIn = Math.ceil(
+    (new Date(endpoint.expires_at).getTime() - Date.now()) /
+      (1000 * 60 * 60 * 24)
+  );
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + "M";
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + "K";
+    }
+    return num.toString();
+  };
 
   // Custom Monaco theme configuration
   const customTheme = {
@@ -54,42 +75,42 @@ export function EndpointCard({ endpoint, index, onDelete }: EndpointCardProps) {
       "editorWidget.background": "#0f172a",
       "editorWidget.border": "#475569",
     },
-  }
+  };
 
   const copyToClipboard = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(text)
-      toast.success("Copied to clipboard!")
+      await navigator.clipboard.writeText(text);
+      toast.success("Copied to clipboard!");
     } catch (err) {
-      console.log("🚀 ~ copyToClipboard ~ err:", err)
-      toast.error("Failed to copy to clipboard")
+      console.log("🚀 ~ copyToClipboard ~ err:", err);
+      toast.error("Failed to copy to clipboard");
     }
-  }
+  };
 
   const openEndpoint = () => {
-    window.open(endpoint.endpoint, '_blank')
-  }
+    window.open(endpoint.endpoint, "_blank");
+  };
 
   const handleDelete = async () => {
-    setIsDeleting(true)
+    setIsDeleting(true);
     try {
       const response = await fetch(`/api/mock/${endpoint.id}`, {
-        method: 'DELETE',
-      })
+        method: "DELETE",
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to delete endpoint')
+        throw new Error("Failed to delete endpoint");
       }
 
-      toast.success("Endpoint deleted successfully!")
-      onDelete?.()
+      toast.success("Endpoint deleted successfully!");
+      onDelete?.();
     } catch (error) {
-      console.error('Error deleting endpoint:', error)
-      toast.error("Failed to delete endpoint")
+      console.error("Error deleting endpoint:", error);
+      toast.error("Failed to delete endpoint");
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
   return (
     <motion.div
@@ -113,13 +134,17 @@ export function EndpointCard({ endpoint, index, onDelete }: EndpointCardProps) {
             <Badge variant={isExpired ? "destructive" : "default"}>
               {isExpired ? "Expired" : "Active"}
             </Badge>
-          </div>
+          </div>{" "}
           <CardDescription className="flex items-center space-x-4 text-sm">
             <span className="flex items-center space-x-1">
               <Calendar className="w-3 h-3" />
               <span>
                 Created {new Date(endpoint.created_at).toLocaleDateString()}
               </span>
+            </span>
+            <span className="flex items-center space-x-1">
+              <TrendingUp className="w-3 h-3" />
+              <span>{formatNumber(endpoint.hits || 0)} hits</span>
             </span>
             {!isExpired && (
               <span className="flex items-center space-x-1">
@@ -147,9 +172,23 @@ export function EndpointCard({ endpoint, index, onDelete }: EndpointCardProps) {
                 className="h-8 w-8 p-0"
               >
                 <Copy className="w-3 h-3" />
-              </Button>
+              </Button>{" "}
             </div>
-          </div>{" "}
+          </div>
+
+          {/* Usage Statistics */}
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">
+              {formatNumber(endpoint.hits || 0)} requests served
+            </span>
+            <Badge variant="secondary" className="text-xs">
+              {(endpoint.hits || 0) > 1000
+                ? "Popular"
+                : (endpoint.hits || 0) > 100
+                ? "Active"
+                : "New"}
+            </Badge>
+          </div>
           {/* Schema Preview */}
           {endpoint.config && (
             <div>
