@@ -23,11 +23,13 @@ async function incrementHits(endpointId: string): Promise<void> {
         .select("hits")
         .eq("id", endpointId)
         .single();
-
       if (!fetchError && current) {
         await supabaseAdmin
           .from("mock_endpoints")
-          .update({ hits: current.hits + 1 })
+          .update({
+            hits: current.hits + 1,
+            updated_at: new Date().toISOString(),
+          })
           .eq("id", endpointId);
       }
     } else if (error) {

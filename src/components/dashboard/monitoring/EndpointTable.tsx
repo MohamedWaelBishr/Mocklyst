@@ -33,63 +33,63 @@ interface EndpointTableProps {
 
 export function EndpointTable({ endpoints, isLoading = false }: EndpointTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
-  const [sortField, setSortField] = useState<keyof UserEndpoint>("created_at")
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
+  const [sortField, setSortField] = useState<keyof UserEndpoint>("updated_at");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   // Helper function to safely get endpoint name
   const getEndpointName = (endpoint: UserEndpoint) => {
     try {
-      const config = typeof endpoint.config === 'string' ? JSON.parse(endpoint.config) : endpoint.config
-      return config?.name || endpoint.endpoint || endpoint.id
+      const config =
+        typeof endpoint.config === "string"
+          ? JSON.parse(endpoint.config)
+          : endpoint.config;
+      return config?.name || endpoint.endpoint || endpoint.id;
     } catch {
-      return endpoint.endpoint || endpoint.id
+      return endpoint.endpoint || endpoint.id;
     }
-  }
+  };
 
   // Filter endpoints based on search term
-  const filteredEndpoints = endpoints.filter(endpoint => {
-    const name = getEndpointName(endpoint)
-    const endpointUrl = endpoint.endpoint || ""
-    return name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           endpointUrl.toLowerCase().includes(searchTerm.toLowerCase())
-  })
+  const filteredEndpoints = endpoints.filter((endpoint) => {
+    const name = getEndpointName(endpoint);
+    const endpointUrl = endpoint.endpoint || "";
+    return (
+      name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      endpointUrl.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
 
   // Sort endpoints
   const sortedEndpoints = [...filteredEndpoints].sort((a, b) => {
-    const aVal = a[sortField]
-    const bVal = b[sortField]
-    
-    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1
-    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1
-    return 0
-  })
+    const aVal = a[sortField];
+    const bVal = b[sortField];
+
+    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
+    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    return 0;
+  });
 
   const handleSort = (field: keyof UserEndpoint) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
-      setSortField(field)
-      setSortDirection("desc")
+      setSortField(field);
+      setSortDirection("desc");
     }
-  }
+  };
 
   const getStatusBadge = (endpoint: UserEndpoint) => {
-    const isExpired = new Date(endpoint.expires_at) < new Date()
+    const isExpired = new Date(endpoint.expires_at) < new Date();
     return (
       <Badge variant={isExpired ? "destructive" : "default"}>
         {isExpired ? "Expired" : "Active"}
       </Badge>
-    )
-  }
-  const getRequestCount = () => {
+    );
+  };
+  const getRequestCount = (endpoint: UserEndpoint) => {
     // Static request count to avoid hydration mismatch
-    return 456
-  }
-
-  const getAvgResponseTime = () => {
-    // Static response time to avoid hydration mismatch
-    return 143
-  }
+    return endpoint.hits;
+  };
 
   return (
     <motion.div
@@ -133,12 +133,14 @@ export function EndpointTable({ endpoints, isLoading = false }: EndpointTablePro
             <div className="text-center py-8">
               <Database className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
               <p className="text-muted-foreground mb-2">
-                {searchTerm ? "No endpoints match your search" : "No endpoints found"}
+                {searchTerm
+                  ? "No endpoints match your search"
+                  : "No endpoints found"}
               </p>
               {searchTerm && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setSearchTerm("")}
                 >
                   Clear search
@@ -160,19 +162,27 @@ export function EndpointTable({ endpoints, isLoading = false }: EndpointTablePro
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Status</TableHead>{" "}
                     <TableHead>
                       <Button
                         variant="ghost"
-                        onClick={() => handleSort("created_at")}
+                        onClick={() => handleSort("updated_at")}
                         className="h-auto p-0 font-semibold hover:bg-transparent"
                       >
                         Requests/Day
                         <ArrowUpDown className="ml-2 h-4 w-4" />
                       </Button>
                     </TableHead>
-                    <TableHead>Avg Response</TableHead>
-                    <TableHead>Last Activity</TableHead>
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort("updated_at")}
+                        className="h-auto p-0 font-semibold hover:bg-transparent"
+                      >
+                        Last Updated
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>{" "}
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -181,35 +191,32 @@ export function EndpointTable({ endpoints, isLoading = false }: EndpointTablePro
                     <TableRow key={endpoint.id}>
                       <TableCell>
                         <div className="space-y-1">
-                          <p className="font-medium">{getEndpointName(endpoint)}</p>
+                          <p className="font-medium">
+                            {getEndpointName(endpoint)}
+                          </p>
                           <p className="text-xs text-muted-foreground font-mono">
                             {endpoint.endpoint}
                           </p>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        {getStatusBadge(endpoint)}
-                      </TableCell>
+                      <TableCell>{getStatusBadge(endpoint)}</TableCell>{" "}
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Activity className="w-4 h-4 text-muted-foreground" />
-                          <span>{getRequestCount()}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <TrendingUp className="w-4 h-4 text-muted-foreground" />
-                          <span>{getAvgResponseTime()}ms</span>
+                          <span>{getRequestCount(endpoint)}</span>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <Clock className="w-4 h-4 text-muted-foreground" />
                           <span className="text-sm">
-                            {formatDistanceToNow(new Date(endpoint.created_at), { addSuffix: true })}
+                            {formatDistanceToNow(
+                              new Date(endpoint.updated_at),
+                              { addSuffix: true }
+                            )}
                           </span>
                         </div>
-                      </TableCell>
+                      </TableCell>{" "}
                       <TableCell>
                         <Button variant="ghost" size="sm" asChild>
                           <a
@@ -232,5 +239,5 @@ export function EndpointTable({ endpoints, isLoading = false }: EndpointTablePro
         </CardContent>
       </Card>
     </motion.div>
-  )
+  );
 }

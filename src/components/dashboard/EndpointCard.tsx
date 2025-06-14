@@ -15,9 +15,11 @@ import {
   Code,
   Trash2,
   TrendingUp,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import Editor from "@monaco-editor/react";
+import { formatDistanceToNow } from "date-fns";
 
 interface EndpointCardProps {
   endpoint: UserEndpoint;
@@ -140,6 +142,15 @@ export function EndpointCard({ endpoint, index, onDelete }: EndpointCardProps) {
               <Calendar className="w-3 h-3" />
               <span>
                 Created {new Date(endpoint.created_at).toLocaleDateString()}
+              </span>
+            </span>
+            <span className="flex items-center space-x-1">
+              <RotateCcw className="w-3 h-3" />
+              <span>
+                Updated{" "}
+                {formatDistanceToNow(new Date(endpoint.updated_at), {
+                  addSuffix: true,
+                })}
               </span>
             </span>
             <span className="flex items-center space-x-1">

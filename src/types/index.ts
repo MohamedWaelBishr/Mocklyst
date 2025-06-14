@@ -22,6 +22,7 @@ export interface MockEndpoint {
   endpoint: string;
   createdAt: Date;
   expiresAt: Date;
+  updatedAt: Date;
   hits: number;
 }
 
