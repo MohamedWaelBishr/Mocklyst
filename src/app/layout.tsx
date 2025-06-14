@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ErrorBoundary } from "@/components/error-boundary";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { QueryProvider } from "@/components/QueryClientProvider";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { PerformanceWrapper } from "@/components/PerformanceWrapper";
@@ -36,19 +37,22 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
+        {" "}
         <ThemeProvider defaultTheme="system">
-          <AuthProvider>
-            <PerformanceWrapper>
-              <div className="flex flex-col min-h-screen">
-                <Header />
-                <main className="flex-1 pt-16">
-                  <ErrorBoundary>{children}</ErrorBoundary>
-                </main>
-                <Footer />
-              </div>
-              <Toaster />
-            </PerformanceWrapper>
-          </AuthProvider>
+          <QueryProvider>
+            <AuthProvider>
+              <PerformanceWrapper>
+                <div className="flex flex-col min-h-screen">
+                  <Header />
+                  <main className="flex-1 pt-16">
+                    <ErrorBoundary>{children}</ErrorBoundary>
+                  </main>
+                  <Footer />
+                </div>
+                <Toaster />
+              </PerformanceWrapper>
+            </AuthProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>
