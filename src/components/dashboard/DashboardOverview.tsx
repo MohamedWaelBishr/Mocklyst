@@ -1,123 +1,132 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { KPICard } from "./analytics/KPICard"
-import { MetricsChart } from "./analytics/MetricsChart"
-import { ActivityFeed, generateMockActivities } from "./analytics/ActivityFeed"
-import { EndpointTable } from "./monitoring/EndpointTable"
-import { UserEndpoint } from "@/lib/hooks/useUserEndpoints"
-import { 
-  Database, 
-  Activity, 
-  Clock, 
-  TrendingUp,
-  Eye,
-  Server
-} from "lucide-react"
+import { KPIGrid } from "./analytics/KPIGrid";
+import { ResponseTimeChart } from "./analytics/ResponseTimeChart";
+import { RequestVolumeChart } from "./analytics/RequestVolumeChart";
+import { StatusDistributionChart } from "./analytics/StatusDistributionChart";
+import { LiveRequestFeed } from "./analytics/LiveRequestFeed";
+import { EndpointTable } from "./monitoring/EndpointTable";
+import { UserEndpoint } from "@/lib/hooks/useUserEndpoints";
+import { useState } from "react";
 
 interface DashboardOverviewProps {
-  endpoints: UserEndpoint[]
-  isLoading?: boolean
+  endpoints: UserEndpoint[];
+  isLoading?: boolean;
 }
 
-export function DashboardOverview({ endpoints, isLoading = false }: DashboardOverviewProps) {
-  // Generate mock data for demo purposes
-  const mockChartData = [
-    { name: 'Mon', value: 45 },
-    { name: 'Tue', value: 67 },
-    { name: 'Wed', value: 52 },
-    { name: 'Thu', value: 89 },
-    { name: 'Fri', value: 76 },
-    { name: 'Sat', value: 34 },
-    { name: 'Sun', value: 58 }
-  ]
-
-  const mockActivities = generateMockActivities(15); // Calculate KPI metrics from actual endpoint data
-  const activeEndpoints = endpoints.filter(
-    (e) => new Date(e.expires_at) > new Date()
-  ).length;
-  const totalRequests = endpoints.reduce(
-    (sum, endpoint) => sum + (endpoint.hits || 0),
-    0
-  );
-  const avgResponseTime = 127; // Keep static for now - would need response time tracking
-  const uptimePercentage = 99.8; // Keep static for now - would need uptime monitoring
-
-  // Calculate trends (simplified - would need historical data for real trends)
-  const endpointsGrowth =
-    endpoints.length > 0
-      ? Math.min(Math.round((activeEndpoints / endpoints.length) * 100), 100)
-      : 0;
-  const requestsGrowth =
-    totalRequests > 0 ? Math.min(Math.round(totalRequests / 100), 50) : 0;
+export function DashboardOverview({
+  endpoints,
+  isLoading = false,
+}: DashboardOverviewProps) {
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "monitoring" | "analytics"
+  >("overview");
 
   return (
     <div className="space-y-6">
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {" "}
-        <KPICard
-          title="Active Endpoints"
-          value={isLoading ? "..." : activeEndpoints}
-          icon={Database}
-          trend={{
-            value: endpointsGrowth,
-            label: "endpoint activity",
-            isPositive: endpointsGrowth > 0,
-          }}
-          isLoading={isLoading}
-        />
-        <KPICard
-          title="Total Requests"
-          value={isLoading ? "..." : totalRequests.toLocaleString()}
-          icon={Activity}
-          trend={{
-            value: requestsGrowth,
-            label: "total hits tracked",
-            isPositive: requestsGrowth > 0,
-          }}
-          isLoading={isLoading}
-        />
-        <KPICard
-          title="Avg Response Time"
-          value={isLoading ? "..." : `${avgResponseTime}ms`}
-          icon={Clock}
-          trend={{
-            value: 5.3,
-            label: "improvement",
-            isPositive: true,
-          }}
-          isLoading={isLoading}
-        />
-        <KPICard
-          title="Uptime"
-          value={isLoading ? "..." : `${uptimePercentage}%`}
-          icon={Server}
-          description="Last 30 days"
-          isLoading={isLoading}
-        />
+      {/* Enhanced KPI Cards */}
+      <KPIGrid endpoints={endpoints} isLoading={isLoading} className="mb-8" />
+
+      {/* Tab Navigation */}
+      <div className="flex space-x-1 bg-muted p-1 rounded-lg w-fit">
+        <button
+          onClick={() => setActiveTab("overview")}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === "overview"
+              ? "bg-background shadow-sm"
+              : "hover:bg-background/50"
+          }`}
+        >
+          Overview
+        </button>
+        <button
+          onClick={() => setActiveTab("monitoring")}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === "monitoring"
+              ? "bg-background shadow-sm"
+              : "hover:bg-background/50"
+          }`}
+        >
+          Monitoring
+        </button>
+        <button
+          onClick={() => setActiveTab("analytics")}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            activeTab === "analytics"
+              ? "bg-background shadow-sm"
+              : "hover:bg-background/50"
+          }`}
+        >
+          Analytics
+        </button>
       </div>
 
-      {/* Endpoint Monitoring Table */}
-      <EndpointTable endpoints={endpoints} isLoading={isLoading} />
+      {/* Tab Content */}
+      {activeTab === "overview" && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-6"
+        >
+          {/* Endpoint Monitoring Table */}
+          <EndpointTable endpoints={endpoints} isLoading={isLoading} />
 
-      {/* Charts and Activity Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Request Volume Chart */}
-        <div className="lg:col-span-2">
-          <MetricsChart
-            title="Request Volume"
-            description="API requests over the last 7 days"
-            data={mockChartData}
-            type="area"
-            color="#3b82f6"
-            isLoading={isLoading}
-          />
-        </div>
+          {/* Charts and Activity Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Request Volume Chart */}
+            <div className="lg:col-span-2">
+              <RequestVolumeChart isLoading={isLoading} />
+            </div>
 
-        {/* Activity Feed */}
-        <ActivityFeed activities={mockActivities} isLoading={isLoading} />
-      </div>
+            {/* Live Activity Feed */}
+            <LiveRequestFeed isLoading={isLoading} />
+          </div>
+        </motion.div>
+      )}
+
+      {activeTab === "monitoring" && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-6"
+        >
+          {/* Performance Charts */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <ResponseTimeChart isLoading={isLoading} />
+            <StatusDistributionChart isLoading={isLoading} />
+          </div>{" "}
+          {/* Detailed Endpoint Table */}
+          <EndpointTable endpoints={endpoints} isLoading={isLoading} />
+        </motion.div>
+      )}
+
+      {activeTab === "analytics" && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-6"
+        >
+          {/* Analytics Grid */}
+          <div className="grid grid-cols-1 gap-6">
+            <RequestVolumeChart
+              isLoading={isLoading}
+              className="col-span-full"
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <ResponseTimeChart isLoading={isLoading} />
+              <StatusDistributionChart isLoading={isLoading} />
+            </div>
+          </div>
+
+          {/* Live Feed */}
+          <LiveRequestFeed isLoading={isLoading} maxItems={50} />
+        </motion.div>
+      )}
     </div>
   );
 }
