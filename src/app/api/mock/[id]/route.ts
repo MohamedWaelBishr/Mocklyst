@@ -3,6 +3,42 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateMockData } from "@/lib/mock-generator";
 import { supabaseAdmin } from "@/lib/supabase";
 
+// Atomic increment function for hit tracking using raw SQL
+async function incrementHits(endpointId: string): Promise<void> {
+  try {
+    if (!supabaseAdmin) {
+      console.error("Supabase admin client not available for hit tracking");
+      return;
+    }
+
+    // Use database function for atomic increment (will create if needed)
+    const { error } = await supabaseAdmin.rpc('increment_endpoint_hits', {
+      endpoint_id: endpointId
+    });
+
+    if (error && error.code === '42883') {
+      // Function doesn't exist, fall back to fetch-and-update
+      const { data: current, error: fetchError } = await supabaseAdmin
+        .from("mock_endpoints")
+        .select("hits")
+        .eq("id", endpointId)
+        .single();
+
+      if (!fetchError && current) {
+        await supabaseAdmin
+          .from("mock_endpoints")
+          .update({ hits: current.hits + 1 })
+          .eq("id", endpointId);
+      }
+    } else if (error) {
+      throw error;
+    }
+  } catch (error) {
+    // Log error but don't throw to avoid affecting response
+    console.error("Failed to increment hits for endpoint:", endpointId, error);
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -50,10 +86,13 @@ export async function GET(
         { error: "Mock endpoint has expired" },
         { status: 410 }
       );
-    }
-
-    // Generate mock data based on schema
+    }    // Generate mock data based on schema
     const mockData = generateMockData(mockEndpoint.config);
+
+    // Increment hits asynchronously (don't block response)
+    incrementHits(id).catch((error) => {
+      console.error("Error incrementing hits for endpoint:", id, error);
+    });
 
     // Set CORS headers to allow cross-origin requests
     const response = NextResponse.json(mockData);
