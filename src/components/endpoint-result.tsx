@@ -10,6 +10,7 @@ import { Copy, ExternalLink, Clock, Trash2, Check } from "lucide-react";
 import { formatExpiryDate } from "@/lib/mock-generator";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 interface EndpointResultProps {
   endpoint: string;
@@ -69,64 +70,67 @@ export function EndpointResult({
             <div className="flex-1 p-3 bg-white dark:bg-slate-900 border rounded-lg font-mono text-sm">
               {fullUrl}
             </div>{" "}
-            <motion.div whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.05 }}>
-              <MovingBorder
-                duration={2000}
-                className="bg-white dark:bg-slate-900 text-black dark:text-white border-green-300 dark:border-green-700"
-              >
-                <Button
-                  onClick={copyToClipboard}
-                  variant="outline"
-                  size="sm"
-                  className="shrink-0 relative overflow-hidden bg-transparent border-0"
-                >
-                  <AnimatePresence mode="wait">
-                    {copied ? (
-                      <motion.div
-                        key="copied"
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        exit={{ scale: 0, rotate: 180 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 20,
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        <Check className="h-4 w-4 text-green-600" />
-                        <span className="text-green-600">Copied!</span>
-                      </motion.div>
-                    ) : (
-                      <motion.div
-                        key="copy"
-                        initial={{ scale: 0, rotate: 180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        exit={{ scale: 0, rotate: -180 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 20,
-                        }}
-                        className="flex items-center gap-2"
-                      >
-                        <Copy className="h-4 w-4" />
-                        Copy
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </Button>
-              </MovingBorder>
-            </motion.div>
-            <Button
-              onClick={openInNewTab}
-              variant="outline"
-              size="sm"
-              className="shrink-0"
+            <motion.div
+              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05 }}
+              className="!rounded-md"
             >
-              <ExternalLink className="h-4 w-4" />
-              Test
-            </Button>
+              <Button
+                onClick={copyToClipboard}
+                variant="outline"
+                // size="sm"
+                className={cn(
+                  "cursor-pointer rounded-md bg-white dark:bg-white  hover:bg-gray-200 dark:hover:bg-gray-200 dark:text-black text-black h-[46px]"
+                )}
+              >
+                <AnimatePresence mode="wait">
+                  {copied ? (
+                    <motion.div
+                      key="copied"
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0, rotate: 180 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20,
+                      }}
+                      className="flex items-center gap-2"
+                    >
+                      <Check className="h-4 w-4 text-green-600" />
+                      <span className="text-green-600">Copied!</span>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="copy"
+                      initial={{ scale: 0, rotate: 180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0, rotate: -180 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 20,
+                      }}
+                      className="flex items-center gap-2 rounded-md "
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copy
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </Button>
+            </motion.div>
+            <motion.div whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.05 }}>
+              <Button
+                onClick={openInNewTab}
+                variant="outline"
+                size="sm"
+                className="shrink-0 h-[46px] cursor-pointer"
+              >
+                <ExternalLink className="h-4 w-4" />
+                Test
+              </Button>
+            </motion.div>
           </div>
         </div>
         <div className="bg-white dark:bg-slate-900 border rounded-lg p-4 space-y-3">
@@ -153,11 +157,19 @@ export function EndpointResult({
           </div>
         </div>{" "}
         <div className="flex gap-2 pt-2">
-          <Button onClick={onResetAction} variant="outline" className="flex-1">
+          <Button
+            onClick={onResetAction}
+            variant="outline"
+            className="flex-1 cursor-pointer"
+          >
             Create Another Mock
           </Button>
           <Link href={`/mock/${id}/delete`}>
-            <Button variant="destructive" size="sm">
+            <Button
+              variant="destructive"
+              size="sm"
+              className="h-[36px] cursor-pointer"
+            >
               <Trash2 className="h-4 w-4" />
               Delete
             </Button>

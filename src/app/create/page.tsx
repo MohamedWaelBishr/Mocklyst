@@ -39,7 +39,7 @@ export default function CreatePage() {
       // Show immediate feedback with proper typing
       const optimisticResult: CreateMockResponse = {
         id: "generating...",
-        endpoint: "Generating mock endpoint...",
+        endpoint: " Generating mock endpoint...",
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       };
       setResult(optimisticResult);

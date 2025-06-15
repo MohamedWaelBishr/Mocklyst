@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, memo } from "react";
+import { useState, useCallback, memo, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AnimatedButton } from "@/components/ui/animated-button";
 import { AnimatedLoader } from "@/components/ui/animated-loader";
@@ -43,6 +43,11 @@ import {
   FieldSuggestion,
   generateValueForType,
 } from "@/lib/field-type-detector";
+import { useEditorSync } from "@/hooks/useEditorSync";
+import { EditorModeToggle } from "@/components/schema-designer/EditorModeToggle";
+import { ImportExport } from "@/components/schema-designer/ImportExport";
+import { JSONTemplates } from "@/components/schema-designer/JSONTemplates";
+import { FormatJSONButton } from "@/components/schema-designer/FormatJSONButton";
 
 interface SchemaDesignerProps {
   onGenerateAction: (schema: MockSchema) => void;
@@ -572,6 +577,17 @@ export function SchemaDesigner({
       },
     ],
   });
+
+  // Initialize editor sync
+  const [editorState, editorActions] = useEditorSync({
+    initialSchema: schema,
+    onSchemaChange: setSchema,
+    debounceMs: 300,
+  });
+
+  // Add mode state for toggle functionality
+  const [currentMode, setCurrentMode] = useState<"form" | "json">("form");
+
   const [expandedFields, setExpandedFields] = useState<Set<string>>(
     new Set(["1"])
   );
@@ -720,6 +736,15 @@ export function SchemaDesigner({
     }
   }, [schema.type]);
 
+  // Sync schema changes to editor
+  const prevSchemaRef = useRef(schema);
+  useEffect(() => {
+    if (JSON.stringify(schema) !== JSON.stringify(prevSchemaRef.current)) {
+      editorActions.updateFromSchema(schema);
+      prevSchemaRef.current = schema;
+    }
+  }, [schema, editorActions]);
+
   // Check if the schema is valid for generation
   const isSchemaValid = useCallback(() => {
     if (schema.type === "primitive") {
@@ -731,11 +756,42 @@ export function SchemaDesigner({
     }
     return false;
   }, [schema]);
+  // Handler functions for new features
+  const handleModeChange = useCallback(
+    (mode: "form" | "json") => {
+      setCurrentMode(mode);
+      editorActions.setEditorMode(mode === "json");
+    },
+    [editorActions]
+  );
+
+  const handleSchemaImport = useCallback(
+    (importedSchema: MockSchema) => {
+      setSchema(importedSchema);
+      editorActions.updateFromSchema(importedSchema);
+    },
+    [editorActions]
+  );
+
+  const handleTemplateSelect = useCallback(
+    (templateSchema: MockSchema) => {
+      setSchema(templateSchema);
+      editorActions.updateFromSchema(templateSchema);
+    },
+    [editorActions]
+  );
+
+  const handleFormatJSON = useCallback(
+    (formattedJson: string) => {
+      editorActions.updateFromEditor(formattedJson);
+    },
+    [editorActions]
+  );
 
   // Copy to clipboard function
   const copyJsonToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(JSON.stringify(mockData, null, 2));
+      await navigator.clipboard.writeText(editorState.editorValue);
       setCopied(true);
       setTimeout(() => setCopied(false), 3000); // 3 seconds for better UX
     } catch (err) {
@@ -766,186 +822,236 @@ export function SchemaDesigner({
             Design your mock API response structure with precision
           </p>
 
-          {/* Schema Type Selector */}
+          {/* New Enhancement Controls */}
           <div className="space-y-4 mb-6">
-            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-              Response Type
-            </Label>
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                {
-                  type: "object" as const,
-                  label: "Object",
-                  description: "Key-value structure",
-                },
-                {
-                  type: "array" as const,
-                  label: "Array",
-                  description: "List of items",
-                },
-                {
-                  type: "primitive" as const,
-                  label: "Primitive",
-                  description: "Single value",
-                },
-              ].map(({ type, label, description }) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => handleSchemaTypeChange(type)}
-                  className={`p-4 rounded-lg border-2 text-left transition-all ${
-                    schema.type === type
-                      ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30"
-                      : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
-                  }`}
-                >
-                  <div className="font-medium text-slate-900 dark:text-slate-100">
-                    {label}
-                  </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    {description}
-                  </div>
-                </button>
-              ))}
+            {/* Mode Toggle */}
+            <EditorModeToggle
+              currentMode={currentMode}
+              onModeChange={handleModeChange}
+              syncStatus={{
+                isFormDriven: editorState.isFormDriven,
+                isEditorDriven: editorState.isEditorDriven,
+                syncInProgress: editorState.syncInProgress,
+              }}
+            />
+
+            {/* Templates and Import/Export */}
+            <div className="flex items-start gap-4 flex-wrap">
+              <JSONTemplates onTemplateSelectAction={handleTemplateSelect} />
+              <ImportExport
+                schema={schema}
+                onSchemaImportAction={handleSchemaImport}
+              />
             </div>
           </div>
 
-          {/* Array Length Configuration */}
-          {schema.type === "array" && (
-            <div className="space-y-4 mb-6">
-              <Label
-                htmlFor="array-length"
-                className="text-sm font-medium text-slate-700 dark:text-slate-300"
-              >
-                Array Length (1-100)
-              </Label>
-              <Input
-                id="array-length"
-                type="number"
-                min={1}
-                max={100}
-                value={schema.length || 3}
-                onChange={(e) =>
-                  handleArrayLengthChange(Number(e.target.value))
-                }
-                className="w-32 rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Number of items to generate in the array (maximum 100)
-              </p>
-            </div>
-          )}
-
-          {/* Primitive Type Configuration */}
-          {schema.type === "primitive" && (
-            <div className="space-y-4 mb-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Primitive Type
-                  </Label>
-                  <Select
-                    value={schema.primitiveType || "string"}
-                    onValueChange={(type: SmartFieldType) =>
-                      handlePrimitiveTypeChange(type)
-                    }
-                  >
-                    <SelectTrigger className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60 overflow-y-auto">
-                      {getAvailableFieldTypes().map(({ type, description }) => (
-                        <SelectItem key={type} value={type}>
-                          <div className="flex flex-col">
-                            <span className="capitalize">
-                              {type.replace(/([A-Z])/g, " $1").trim()}
-                            </span>
-                            <span className="text-xs text-slate-500 dark:text-slate-400">
-                              {description}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Value
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      placeholder="Enter value or generate"
-                      value={String(schema.primitiveValue || "")}
-                      onChange={(e) =>
-                        handlePrimitiveValueChange(e.target.value)
-                      }
-                      className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 pr-10"
-                    />
-                    <Button
+          {/* Form Mode Content */}
+          {currentMode === "form" && (
+            <>
+              {/* Schema Type Selector */}
+              <div className="space-y-4 mb-6">
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Response Type
+                </Label>
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    {
+                      type: "object" as const,
+                      label: "Object",
+                      description: "Key-value structure",
+                    },
+                    {
+                      type: "array" as const,
+                      label: "Array",
+                      description: "List of items",
+                    },
+                    {
+                      type: "primitive" as const,
+                      label: "Primitive",
+                      description: "Single value",
+                    },
+                  ].map(({ type, label, description }) => (
+                    <button
+                      key={type}
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
-                      aria-label="Generate value"
-                      onClick={() =>
-                        handlePrimitiveValueChange(
-                          generateValueForType(schema.primitiveType || "string")
-                        )
-                      }
+                      onClick={() => handleSchemaTypeChange(type)}
+                      className={`p-4 rounded-lg border-2 text-left transition-all ${
+                        schema.type === type
+                          ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/30"
+                          : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                      }`}
                     >
-                      <Sparkles className="h-3 w-3" />
-                    </Button>
+                      <div className="font-medium text-slate-900 dark:text-slate-100">
+                        {label}
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                        {description}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Array Length Configuration */}
+              {schema.type === "array" && (
+                <div className="space-y-4 mb-6">
+                  <Label
+                    htmlFor="array-length"
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
+                  >
+                    Array Length (1-100)
+                  </Label>
+                  <Input
+                    id="array-length"
+                    type="number"
+                    min={1}
+                    max={100}
+                    value={schema.length || 3}
+                    onChange={(e) =>
+                      handleArrayLengthChange(Number(e.target.value))
+                    }
+                    className="w-32 rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                  />
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Number of items to generate in the array (maximum 100)
+                  </p>
+                </div>
+              )}
+
+              {/* Primitive Type Configuration */}
+              {schema.type === "primitive" && (
+                <div className="space-y-4 mb-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Primitive Type
+                      </Label>
+                      <Select
+                        value={schema.primitiveType || "string"}
+                        onValueChange={(type: SmartFieldType) =>
+                          handlePrimitiveTypeChange(type)
+                        }
+                      >
+                        <SelectTrigger className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-60 overflow-y-auto">
+                          {getAvailableFieldTypes().map(
+                            ({ type, description }) => (
+                              <SelectItem key={type} value={type}>
+                                <div className="flex flex-col">
+                                  <span className="capitalize">
+                                    {type.replace(/([A-Z])/g, " $1").trim()}
+                                  </span>
+                                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                                    {description}
+                                  </span>
+                                </div>
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        Value
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          placeholder="Enter value or generate"
+                          value={String(schema.primitiveValue || "")}
+                          onChange={(e) =>
+                            handlePrimitiveValueChange(e.target.value)
+                          }
+                          className="rounded-lg border-slate-200 dark:border-slate-700 focus:border-indigo-300 dark:focus:border-indigo-500 focus:ring-indigo-200 dark:focus:ring-indigo-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 pr-10"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/30"
+                          aria-label="Generate value"
+                          onClick={() =>
+                            handlePrimitiveValueChange(
+                              generateValueForType(
+                                schema.primitiveType || "string"
+                              )
+                            )
+                          }
+                        >
+                          <Sparkles className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+              )}
+
+              <hr className="border-slate-200 dark:border-slate-700" />
+
+              {/* Fields Configuration */}
+              {(schema.type === "object" || schema.type === "array") && (
+                <form className="space-y-4 mt-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                        {schema.type === "array"
+                          ? "Array Item Fields"
+                          : "Object Fields"}
+                      </Label>
+                      {schema.type === "array" && (
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          {schema.length || 3} items will be generated
+                        </span>
+                      )}
+                    </div>{" "}
+                    {/* Fields */}
+                    {schema.fields?.map((field, index) => (
+                      <RecursiveFieldWrapper
+                        key={index}
+                        field={field}
+                        path={index.toString()}
+                        depth={0}
+                        expandedFields={expandedFields}
+                        onToggleExpanded={toggleExpanded}
+                        onUpdateField={updateFieldByPath}
+                        onAddNestedField={addNestedField}
+                        onRemoveField={removeField}
+                      />
+                    ))}
+                  </div>
+                  <hr className="border-slate-200 dark:border-slate-700" />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full rounded-lg border-dashed border-slate-300 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
+                    onClick={addField}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Field
+                  </Button>
+                </form>
+              )}
+            </>
           )}
 
-          <hr className="border-slate-200 dark:border-slate-700" />
-
-          {/* Fields Configuration */}
-          {(schema.type === "object" || schema.type === "array") && (
-            <form className="space-y-4 mt-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {schema.type === "array"
-                      ? "Array Item Fields"
-                      : "Object Fields"}
-                  </Label>
-                  {schema.type === "array" && (
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
-                      {schema.length || 3} items will be generated
-                    </span>
-                  )}
-                </div>{" "}
-                {/* Fields */}
-                {schema.fields?.map((field, index) => (
-                  <RecursiveFieldWrapper
-                    key={index}
-                    field={field}
-                    path={index.toString()}
-                    depth={0}
-                    expandedFields={expandedFields}
-                    onToggleExpanded={toggleExpanded}
-                    onUpdateField={updateFieldByPath}
-                    onAddNestedField={addNestedField}
-                    onRemoveField={removeField}
-                  />
-                ))}
+          {/* JSON Mode Content */}
+          {currentMode === "json" && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center gap-3 mb-3">
+                <Code className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <h4 className="font-medium text-blue-900 dark:text-blue-100">
+                  JSON Mode Active
+                </h4>
               </div>
-              <hr className="border-slate-200 dark:border-slate-700" />
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full rounded-lg border-dashed border-slate-300 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400"
-                onClick={addField}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Field
-              </Button>
-            </form>
+              <p className="text-sm text-blue-700 dark:text-blue-300">
+                You're in JSON editing mode. Edit the JSON directly in the
+                editor on the right. The form will automatically update to
+                reflect your changes. Switch back to Form Mode to use the visual
+                editor.
+              </p>
+            </div>
           )}
         </section>
         {/* JSON Preview Section */}
@@ -1008,24 +1114,134 @@ export function SchemaDesigner({
                 </AnimatePresence>
               </Button>
             </motion.div>
+          </div>{" "}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200 mb-1">
+                  JSON Editor
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400 font-medium">
+                  Edit JSON directly or use the form above
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {/* Format JSON Button */}
+                <FormatJSONButton
+                  editorValue={editorState.editorValue}
+                  onFormatAction={handleFormatJSON}
+                />
+
+                {/* Sync status indicator */}
+                {editorState.syncInProgress && (
+                  <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                    Syncing...
+                  </div>
+                )}
+                {/* {editorState.isFormDriven && !editorState.syncInProgress && (
+                  <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                    <div className="w-2 h-2 bg-green-500 rounded-full" />
+                    Form → JSON
+                  </div>
+                )}
+                {editorState.isEditorDriven && !editorState.syncInProgress && (
+                  <div className="flex items-center gap-2 text-sm text-purple-600 dark:text-purple-400">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                    JSON → Form
+                  </div>
+                )} */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyJsonToClipboard}
+                  className="flex items-center gap-2 bg-white/50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-600 hover:bg-white dark:hover:bg-slate-800 transition-colors"
+                >
+                  <AnimatePresence mode="wait">
+                    {copied ? (
+                      <motion.div
+                        key="check"
+                        initial={{ scale: 0, rotate: -180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        exit={{ scale: 0, rotate: 180 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
+                        className="flex items-center justify-center"
+                      >
+                        <Check className="h-4 w-4" />
+                      </motion.div>
+                    ) : (
+                      <motion.div
+                        key="copy"
+                        initial={{ scale: 0, rotate: 180 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        exit={{ scale: 0, rotate: -180 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
+                        className="flex items-center justify-center"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Button>
+              </div>
+            </div>
+
+            {/* Validation error display */}
+            {editorState.parseError && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3"
+              >
+                <div className="flex items-start gap-2">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mt-2" />
+                  <div>
+                    <h4 className="font-medium text-red-900 dark:text-red-100 mb-1">
+                      JSON Validation Error
+                    </h4>
+                    <p className="text-sm text-red-700 dark:text-red-300">
+                      {editorState.parseError}
+                    </p>
+                    {editorState.validationResult.lineNumber && (
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                        Line {editorState.validationResult.lineNumber}
+                        {editorState.validationResult.column &&
+                          `, Column ${editorState.validationResult.column}`}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            <hr className="border-slate-200 dark:border-slate-700" />
           </div>
-          <p className="text-slate-600 dark:text-slate-400 font-medium mb-6">
-            Live preview of your mock response
-          </p>
-          <hr className="border-slate-200 dark:border-slate-700" />
           <div className="relative">
             <div className="rounded-xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700">
               <Editor
                 height="400px"
                 language="json"
                 theme={"custom-dark"}
-                value={JSON.stringify(mockData, null, 2)}
+                value={editorState.editorValue}
+                onChange={(value) => {
+                  if (value !== undefined) {
+                    editorActions.updateFromEditor(value);
+                  }
+                }}
                 beforeMount={(monaco) => {
                   // Register the custom theme
                   monaco.editor.defineTheme("custom-dark", customTheme);
                 }}
                 options={{
-                  readOnly: true,
+                  readOnly: false, // Make editor editable
                   minimap: { enabled: false },
                   scrollBeyondLastLine: false,
                   fontSize: 14,
